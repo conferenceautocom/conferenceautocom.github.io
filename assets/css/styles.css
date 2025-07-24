@@ -373,7 +373,6 @@ button {
   font-weight: var(--font-semi-bold);
   line-height: 109%;
   margin-bottom: 0;
-  text-transform: uppercase;
   letter-spacing: 0.3rem;
 }
 
