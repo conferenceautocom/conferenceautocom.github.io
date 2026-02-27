@@ -1,4 +1,4 @@
-import '/src/styles/style.css';
+import '/src/styles/style.css'; // Deployment Trigger: Absolute paths for root hosting
 import { renderAbout, renderRegistration, renderGuidelines, renderHero, renderSpeakers, renderTracks, renderCommittees, renderPartners, renderFooter, renderCFP, renderGallery, renderContact } from './scripts/renderer.js';
 
 let siteConfig = null;
