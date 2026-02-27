@@ -95,6 +95,94 @@
             ]
         },
         {
+            "id": "publication_chairs",
+            "title": "Publication Chair(s)",
+            "members": [
+                {
+                    "name": "Dr. Satvik Vats",
+                    "affiliation": "MMMUT, Gorakhpur"
+                },
+                {
+                    "name": "Eisuke Kita",
+                    "affiliation": "Nagoya University, Japan"
+                },
+                {
+                    "name": "Prof. (Dr.) A.K. Sahoo",
+                    "affiliation": "Graphic Era Hill University, Dehradun"
+                },
+                {
+                    "name": "Dr. Guoyi Peng",
+                    "affiliation": "Nihon University, Japan"
+                },
+                {
+                    "name": "Dr. Hasmukh Morarji",
+                    "affiliation": "QUT, Brisbane, Australia"
+                },
+                {
+                    "name": "Dr. Om Pal",
+                    "affiliation": "University of Delhi"
+                },
+                {
+                    "name": "Dr. Santri Negi",
+                    "affiliation": "DEAL, Dehradun"
+                }
+            ]
+        },
+        {
+            "id": "tpc_chairs",
+            "title": "Technical Program Chair(s)",
+            "members": [
+                {
+                    "name": "Dr. Zafar U. Ahmed",
+                    "affiliation": "Texas University, USA"
+                },
+                {
+                    "name": "Dr. Rosilah Binti Hassan",
+                    "affiliation": "Universiti Kebangsaan Malaysia, Malaysia"
+                },
+                {
+                    "name": "Dr. Pinaki Sen",
+                    "affiliation": "DEAL, Dehradun"
+                },
+                {
+                    "name": "Dr. Ali Ahmadian",
+                    "affiliation": "Central Queensland University, Australia"
+                },
+                {
+                    "name": "Dr. Unni Krishnan",
+                    "affiliation": "DEAL, Dehradun"
+                },
+                {
+                    "name": "Dr. Om Pal",
+                    "affiliation": "University of Delhi"
+                },
+                {
+                    "name": "Dr. Santri Negi",
+                    "affiliation": "DEAL, Dehradun"
+                },
+                {
+                    "name": "Dr. Anish Mathuria",
+                    "affiliation": "University of Massachusetts Dartmouth, USA"
+                },
+                {
+                    "name": "Dr. Rjender Singh",
+                    "affiliation": "DEAL, Dehradun"
+                },
+                {
+                    "name": "Alain Bretto",
+                    "affiliation": "University of Caen, France"
+                },
+                {
+                    "name": "Dr. Prateek Srivastava",
+                    "affiliation": "Graphic Era Hill University, Dehradun"
+                },
+                {
+                    "name": "Dr. Susheela Dhiya",
+                    "affiliation": "Graphic Era Hill University, Dehradun"
+                }
+            ]
+        },
+        {
             "id": "advisory_board",
             "title": "Advisory Board",
             "subgroups": [
@@ -211,94 +299,6 @@
                             "affiliation": "SMVDU, Katra"
                         }
                     ]
-                }
-            ]
-        },
-        {
-            "id": "tpc_chairs",
-            "title": "Technical Program Chair(s)",
-            "members": [
-                {
-                    "name": "Dr. Zafar U. Ahmed",
-                    "affiliation": "Texas University, USA"
-                },
-                {
-                    "name": "Dr. Rosilah Binti Hassan",
-                    "affiliation": "Universiti Kebangsaan Malaysia, Malaysia"
-                },
-                {
-                    "name": "Dr. Pinaki Sen",
-                    "affiliation": "DEAL, Dehradun"
-                },
-                {
-                    "name": "Dr. Ali Ahmadian",
-                    "affiliation": "Central Queensland University, Australia"
-                },
-                {
-                    "name": "Dr. Unni Krishnan",
-                    "affiliation": "DEAL, Dehradun"
-                },
-                {
-                    "name": "Dr. Om Pal",
-                    "affiliation": "University of Delhi"
-                },
-                {
-                    "name": "Dr. Santri Negi",
-                    "affiliation": "DEAL, Dehradun"
-                },
-                {
-                    "name": "Dr. Anish Mathuria",
-                    "affiliation": "University of Massachusetts Dartmouth, USA"
-                },
-                {
-                    "name": "Dr. Rjender Singh",
-                    "affiliation": "DEAL, Dehradun"
-                },
-                {
-                    "name": "Alain Bretto",
-                    "affiliation": "University of Caen, France"
-                },
-                {
-                    "name": "Dr. Prateek Srivastava",
-                    "affiliation": "Graphic Era Hill University, Dehradun"
-                },
-                {
-                    "name": "Dr. Susheela Dhiya",
-                    "affiliation": "Graphic Era Hill University, Dehradun"
-                }
-            ]
-        },
-        {
-            "id": "publication_chairs",
-            "title": "Publication Chair(s)",
-            "members": [
-                {
-                    "name": "Dr. Satvik Vats",
-                    "affiliation": "MMMUT, Gorakhpur"
-                },
-                {
-                    "name": "Eisuke Kita",
-                    "affiliation": "Nagoya University, Japan"
-                },
-                {
-                    "name": "Prof. (Dr.) A.K. Sahoo",
-                    "affiliation": "Graphic Era Hill University, Dehradun"
-                },
-                {
-                    "name": "Dr. Guoyi Peng",
-                    "affiliation": "Nihon University, Japan"
-                },
-                {
-                    "name": "Dr. Hasmukh Morarji",
-                    "affiliation": "QUT, Brisbane, Australia"
-                },
-                {
-                    "name": "Dr. Om Pal",
-                    "affiliation": "University of Delhi"
-                },
-                {
-                    "name": "Dr. Santri Negi",
-                    "affiliation": "DEAL, Dehradun"
                 }
             ]
         },
