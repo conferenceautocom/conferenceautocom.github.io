@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite';
 
 export default defineConfig({
-    base: '/', // Base path for GitHub Pages root hosting
+    base: './', // Relative base path for GitHub Pages
     build: {
         outDir: 'dist',
     }

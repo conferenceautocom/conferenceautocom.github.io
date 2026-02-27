@@ -1,4 +1,4 @@
-import '/src/styles/style.css';
+import './styles/style.css';
 import { renderAbout, renderRegistration, renderGuidelines, renderHero, renderSpeakers, renderTracks, renderCommittees, renderPartners, renderFooter, renderCFP, renderGallery, renderContact } from './scripts/renderer.js';
 
 let siteConfig = null;
@@ -7,7 +7,7 @@ let currentPath = 'home';
 async function fetchData(file) {
   try {
     // Cache busting with timestamp
-    const response = await fetch(`/data/${file}.json?v=${new Date().getTime()}`);
+    const response = await fetch(`./data/${file}.json?v=${new Date().getTime()}`);
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     return await response.json();
   } catch (e) {
