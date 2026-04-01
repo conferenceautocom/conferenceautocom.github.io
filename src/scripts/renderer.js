@@ -172,6 +172,7 @@ export const renderHero = (config) => `
         <div class="hero-actions">
           <button class="btn btn-primary" onclick="window.navigate('registration')">Register Now</button>
           <button class="btn btn-outline" onclick="window.navigate('cfp')">Call for Papers</button>
+          ${config.site.articleSubmissionUrl ? `<a href="${config.site.articleSubmissionUrl}" class="btn btn-primary" target="_blank" rel="noopener noreferrer">Article submission link</a>` : ''}
         </div>
       </div>
     </div>
@@ -527,6 +528,21 @@ export const renderContact = (config) => {
               </div>
             `).join('')}
           </div>
+        </div>
+      </div>
+    </section>
+  `;
+};
+
+export const renderDownloads = (config) => {
+  const downloads = config.site.importantDownloads || {};
+  return `
+    <section class="downloads-section">
+      <div class="container" style="text-align: center; padding: 3rem 0;">
+        <h2 class="section-title">Important Downloads</h2>
+        <div class="downloads-grid" style="display: flex; gap: 1rem; justify-content: center; margin-top: 2rem;">
+          ${downloads.brochure ? `<a href="${downloads.brochure}" class="btn btn-primary" target="_blank" rel="noopener noreferrer">Brochure</a>` : ''}
+          ${downloads.paperTemplate ? `<a href="${downloads.paperTemplate}" class="btn btn-outline" target="_blank" rel="noopener noreferrer">Paper Template</a>` : ''}
         </div>
       </div>
     </section>

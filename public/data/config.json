@@ -8,6 +8,7 @@
     "mode": "Physical",
     "ieeeRecordNumber": "69275",
     "tagline": "Connect. Ideate. Automate.",
+    "articleSubmissionUrl": "https://cmt3.research.microsoft.com/AUTOCOM2026/Submission/Index",
     "branding": {
       "logo_conference": "/images/autocom_logo.png",
       "logo_university": "/images/university_logo.png",
@@ -32,6 +33,10 @@
         "Discussion on future technological directions and research priorities",
         "Knowledge sharing that supports academic sustainability and innovation growth"
       ]
+    },
+    "importantDownloads": {
+      "brochure": "/downloads/AUTOCOM_26_BROCHURE.pdf",
+      "paperTemplate": "/downloads/paper_template.docx"
     }
   },
   "navigation": [

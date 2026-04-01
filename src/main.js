@@ -1,5 +1,5 @@
 import '/src/styles/style.css'; // Deployment Trigger: Absolute paths for root hosting
-import { renderAbout, renderRegistration, renderGuidelines, renderHero, renderSpeakers, renderTracks, renderCommittees, renderPartners, renderFooter, renderCFP, renderGallery, renderContact } from './scripts/renderer.js';
+import { renderAbout, renderRegistration, renderGuidelines, renderHero, renderSpeakers, renderTracks, renderCommittees, renderPartners, renderFooter, renderCFP, renderGallery, renderContact, renderDownloads } from './scripts/renderer.js';
 
 let siteConfig = null;
 let currentPath = 'home';
@@ -114,6 +114,8 @@ async function renderApp() {
           </div>
         </section>
       `);
+
+      mainContent.insertAdjacentHTML('beforeend', renderDownloads(siteConfig));
 
     } else {
       // Other pages
