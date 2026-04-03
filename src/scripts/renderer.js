@@ -548,3 +548,77 @@ export const renderDownloads = (config) => {
     </section>
   `;
 };
+
+export const renderNearbyGallery = (data) => {
+  const nearbyPhotos = data.nearby || [];
+  if (nearbyPhotos.length === 0) return '';
+  
+  if (!window.scrollMiniGallery) {
+    window.scrollMiniGallery = (direction) => {
+      const slider = document.querySelector('#home-nearby-gallery .gallery-slider');
+      if (!slider) return;
+      const items = slider.querySelectorAll('.gallery-item');
+      if (items.length === 0) return;
+      const itemWidth = items[0].offsetWidth + parseInt(window.getComputedStyle(slider).gap || 0);
+      const maxScroll = slider.scrollWidth - slider.clientWidth;
+
+      if (direction === 'next') {
+        if (slider.scrollLeft >= maxScroll - 10) {
+          slider.scrollTo({ left: 0, behavior: 'smooth' });
+        } else {
+          slider.scrollBy({ left: itemWidth, behavior: 'smooth' });
+        }
+      } else {
+        if (slider.scrollLeft <= 10) {
+          slider.scrollTo({ left: maxScroll, behavior: 'smooth' });
+        } else {
+          slider.scrollBy({ left: -itemWidth, behavior: 'smooth' });
+        }
+      }
+    };
+    
+    window.homeAutoplayInterval = null;
+    window.startHomeAutoplay = () => {
+      if (window.homeAutoplayInterval) return;
+      window.homeAutoplayInterval = setInterval(() => {
+        window.scrollMiniGallery('next');
+      }, 4000);
+    };
+    window.stopHomeAutoplay = () => {
+      if (window.homeAutoplayInterval) {
+        clearInterval(window.homeAutoplayInterval);
+        window.homeAutoplayInterval = null;
+      }
+    };
+  }
+
+  setTimeout(() => {
+    if (window.startHomeAutoplay) window.startHomeAutoplay();
+  }, 1000);
+
+  return `
+    <section class="gallery-section home-nearby-section" style="padding-top: 1rem; padding-bottom: 4rem;">
+      <div class="container">
+        <h2 class="section-title">Nearby Places to Visit</h2>
+        <div id="home-nearby-gallery" class="gallery-category-content active">
+          <div class="slider-container"
+               onmouseenter="stopHomeAutoplay()" 
+               onmouseleave="startHomeAutoplay()">
+            <button class="slider-nav-btn prev" onclick="scrollMiniGallery('prev')">❮</button>
+            <div class="gallery-slider">
+              ${nearbyPhotos.map(p => `
+                <div class="gallery-item">
+                  <img src="${p.url}" alt="${p.caption}" loading="lazy">
+                  <div class="gallery-overlay">
+                    <p>${p.caption}</p>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+            <button class="slider-nav-btn next" onclick="scrollMiniGallery('next')">❯</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  `;
+};

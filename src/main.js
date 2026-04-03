@@ -1,5 +1,5 @@
 import '/src/styles/style.css'; // Deployment Trigger: Absolute paths for root hosting
-import { renderAbout, renderRegistration, renderGuidelines, renderHero, renderSpeakers, renderTracks, renderCommittees, renderPartners, renderFooter, renderCFP, renderGallery, renderContact, renderDownloads } from './scripts/renderer.js';
+import { renderAbout, renderRegistration, renderGuidelines, renderHero, renderSpeakers, renderTracks, renderCommittees, renderPartners, renderFooter, renderCFP, renderGallery, renderContact, renderDownloads, renderNearbyGallery } from './scripts/renderer.js';
 
 let siteConfig = null;
 let currentPath = 'home';
@@ -113,9 +113,20 @@ async function renderApp() {
             </div>
           </div>
         </section>
+        <div class="container">
+          <hr style="border: none; border-top: 1px dashed var(--accent); opacity: 0.3; margin: 1rem auto; width: 60%;">
+        </div>
       `);
 
       mainContent.insertAdjacentHTML('beforeend', renderDownloads(siteConfig));
+
+      // Append nearby gallery slider
+      try {
+        const hGalleryData = await fetchData('gallery');
+        mainContent.insertAdjacentHTML('beforeend', renderNearbyGallery(hGalleryData));
+      } catch (err) {
+        console.error("Failed to load gallery for home page:", err);
+      }
 
     } else {
       // Other pages
