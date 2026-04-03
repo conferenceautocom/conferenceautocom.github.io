@@ -37,6 +37,30 @@
         {
             "url": "/images/gallery/nearby/2.jpg",
             "caption": "Cloud's End View Point - Mussoorie"
+        },
+        {
+            "url": "/images/gallery/nearby/3.png",
+            "caption": "River Rafting Rishikesh"
+        },
+        {
+            "url": "/images/gallery/nearby/4.png",
+            "caption": "Bunjee Jumping Rishikesh"
+        },
+        {
+            "url": "/images/gallery/nearby/5.png",
+            "caption": "Ganga Aarti Rishikesh"
+        },
+        {
+            "url": "/images/gallery/nearby/6.png",
+            "caption": "Water Sports Tehri"
+        },
+        {
+            "url": "/images/gallery/nearby/7.png",
+            "caption": "Mall Road Massoorie"
+        },
+        {
+            "url": "/images/gallery/nearby/8.png",
+            "caption": "Massoorie"
         }
     ]
 }
