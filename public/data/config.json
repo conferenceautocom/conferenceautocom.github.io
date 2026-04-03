@@ -84,13 +84,88 @@
   "contact": {
     "email": "autocom@gehu.ac.in",
     "address": "Graphic Era Hill University, Society Area, Clement Town, Dehradun, Uttarakhand 248002",
-    "phone": "+91 135 2642727",
+    "phone": "+91 98708 96031",
     "queries": [
       {
         "type": "General Queries",
         "contacts": [
           "Dr. Vikrant Sharma (+91-9082373573)",
           "Dr. Amit Gupta (+91-9412941219)"
+        ]
+      }
+    ],
+    "howToReach": [
+      {
+        "mode": "From Airport (Jolly Grant)",
+        "distance": "32 km",
+        "icon": "✈️",
+        "nodes": [
+          {
+            "name": "Jolly Grant Airport",
+            "detail": "Starting Point",
+            "distanceToNext": "12 km"
+          },
+          {
+            "name": "Doiwala",
+            "detail": "Intermediate (via NH7)",
+            "distanceToNext": "15 km"
+          },
+          {
+            "name": "ISBT Dehradun",
+            "detail": "Major Landmark",
+            "distanceToNext": "5 km"
+          },
+          {
+            "name": "Graphic Era Hill University",
+            "detail": "Destination"
+          }
+        ]
+      },
+      {
+        "mode": "From Railway Station",
+        "distance": "8 km",
+        "icon": "🚆",
+        "nodes": [
+          {
+            "name": "Dehradun Railway Station",
+            "detail": "Starting Point",
+            "distanceToNext": "1.5 km"
+          },
+          {
+            "name": "Saharanpur Chowk",
+            "detail": "Intermediate",
+            "distanceToNext": "3.5 km"
+          },
+          {
+            "name": "ISBT Dehradun",
+            "detail": "Major Landmark",
+            "distanceToNext": "3.0 km"
+          },
+          {
+            "name": "Graphic Era Hill University",
+            "detail": "Destination"
+          }
+        ]
+      },
+      {
+        "mode": "From Bus Station (ISBT)",
+        "distance": "3 km",
+        "icon": "🚌",
+        "nodes": [
+          {
+            "name": "ISBT Dehradun",
+            "detail": "Starting Point",
+            "distanceToNext": "1.2 km"
+          },
+          {
+            "name": "Turner Road",
+            "detail": "Intermediate",
+            "distanceToNext": "1.8 km"
+          },
+          {
+            "name": "Graphic Era Hill University",
+            "detail": "Destination"
+          }
         ]
       }
     ]

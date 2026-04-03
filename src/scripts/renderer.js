@@ -529,6 +529,49 @@ export const renderContact = (config) => {
             `).join('')}
           </div>
         </div>
+
+        ${contact.howToReach ? `
+          <div class="how-to-reach" style="margin-top: 4rem;">
+            <h3 class="section-title" style="font-size: 1.8rem; margin-bottom: 2rem;">How to Reach</h3>
+            <div class="reach-graph" style="max-width: 800px; margin: 0 auto; background: var(--surface); padding: 2.5rem; border-radius: 1rem; border: 1px solid var(--border); box-shadow: var(--shadow);">
+              ${contact.howToReach.map(item => `
+                <div class="reach-item" style="margin-bottom: 2rem;">
+                  <div class="reach-label" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem; font-weight: 500;">
+                    <span style="font-size: 1.1rem; display: flex; align-items: center; gap: 0.8rem;">
+                      <span style="font-size: 1.5rem; background: var(--bg); padding: 0.5rem; border-radius: 0.5rem;">${item.icon}</span> 
+                      ${item.mode}
+                    </span>
+                    <span style="color: var(--accent); font-weight: bold; font-size: 1.2rem; background: var(--primary-light); padding: 0.2rem 0.8rem; border-radius: 1rem;">${item.distance}</span>
+                  </div>
+                  <div class="reach-timeline" style="display: flex; justify-content: space-between; position: relative; margin-top: 1.5rem; padding-top: 1rem;">
+                    <!-- Connecting Line -->
+                    <div style="position: absolute; top: 1.6rem; left: ${(100 / (item.nodes.length * 2))}%; right: ${(100 / (item.nodes.length * 2))}%; height: 4px; background: var(--border); z-index: 1;">
+                       <div style="height: 100%; width: 100%; background: linear-gradient(90deg, var(--primary), var(--accent)); opacity: 0.8;"></div>
+                    </div>
+                    
+                    <!-- Nodes -->
+                    ${(item.nodes || []).map((node, i) => `
+                      <div class="timeline-node" style="position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; width: ${100 / item.nodes.length}%; text-align: center;">
+                        <div style="width: 24px; height: 24px; border-radius: 50%; background: var(--surface); border: 5px solid ${i === 0 ? 'var(--primary)' : (i === item.nodes.length - 1 ? 'var(--accent)' : 'var(--border)')}; margin-bottom: 0.8rem; box-shadow: 0 0 0 4px var(--surface);"></div>
+                        <div style="font-weight: 600; font-size: 0.9rem; color: var(--text); line-height: 1.2; margin-bottom: 0.3rem;">${node.name}</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted);">${node.detail}</div>
+                        
+                        ${node.distanceToNext ? `
+                          <!-- Edge weight -->
+                          <div style="position: absolute; top: 0.8rem; right: 0; transform: translateX(50%); background: var(--surface); border: 1px solid var(--accent); color: var(--accent); font-size: 0.75rem; font-weight: 700; padding: 0.1rem 0.5rem; border-radius: 12px; z-index: 5; box-shadow: 0 2px 4px rgba(0,0,0,0.05); white-space: nowrap;">
+                            ${node.distanceToNext}
+                          </div>
+                        ` : ''}
+                      </div>
+                    `).join('')}
+                  </div>
+                </div>
+              `).join('')}
+              <p style="margin-top: 2rem; padding-top: 1rem; border-top: 1px dashed var(--border); font-size: 0.95rem; color: var(--text-muted); text-align: center;">Distances listed are approximate distances to the Graphic Era Hill University campus.</p>
+            </div>
+          </div>
+        ` : ''}
+
       </div>
     </section>
   `;
