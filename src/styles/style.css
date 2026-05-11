@@ -266,8 +266,21 @@ section {
     font-size: 1.25rem;
     color: #e2e8f0;
     font-weight: 600;
-    margin-bottom: 3rem;
+    margin-bottom: 0.5rem;
     display: block;
+}
+
+.deadline {
+    color: var(--accent);
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin-bottom: 2.5rem;
+    display: inline-block;
+    padding: 0.3rem 1rem;
+    background: var(--surface);
+    border-radius: 2rem;
+    border: 1px solid var(--border);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
 }
 
 .hero-actions {

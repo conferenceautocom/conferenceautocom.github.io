@@ -168,6 +168,7 @@ export const renderHero = (config) => `
         <h1>${config.site.fullName}</h1>
         <p class="tagline">${config.site.tagline}</p>
         <p class="dates">${config.site.dates}</p>
+        ${config.site.articleSubmissionDeadline ? `<p class="deadline">Article Submission Deadline: ${config.site.articleSubmissionDeadline}</p>` : ''}
         ${config.site.mode ? `<p class="hero-mode">Conference Mode: <strong>${config.site.mode}</strong></p>` : ''}
         <div class="hero-actions">
           <button class="btn btn-primary" onclick="window.navigate('registration')">Register Now</button>
