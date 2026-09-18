@@ -1,14 +1,18 @@
 import '/src/styles/style.css'; // Deployment Trigger: Absolute paths for root hosting
-import { renderAbout, renderRegistration, renderGuidelines, renderHero, renderSpeakers, renderTracks, renderCommittees, renderPartners, renderFooter, renderCFP, renderGallery, renderContact, renderDownloads, renderNearbyGallery } from './scripts/renderer.js';
+import { renderAbout, renderRegistration, renderGuidelines, renderHero, renderSpeakers, renderTracks, renderCommittees, renderPartners, renderFooter, renderCFP, renderGallery, renderContact, renderDownloads, renderNearbyGallery, renderSchedule, renderItinerary } from './scripts/renderer.js';
 
 let siteConfig = null;
 let currentPath = 'home';
 
-async function fetchData(file) {
+async function fetchData(file, format = 'json') {
   try {
     // Cache busting with timestamp
-    const response = await fetch(`/data/${file}.json?v=${new Date().getTime()}`);
+    const ext = format === 'csv' ? 'csv' : 'json';
+    const response = await fetch(`/data/${file}.${ext}?v=${new Date().getTime()}`);
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+    if (format === 'csv') {
+      return await response.text();
+    }
     return await response.json();
   } catch (e) {
     console.error(`Failed to fetch ${file}:`, e);
@@ -178,6 +182,14 @@ async function renderApp() {
         case 'guidelines':
           const gData = await fetchData('guidelines');
           pageHtml = renderGuidelines(gData);
+          break;
+        case 'itinerary':
+          const itinData = await fetchData('itinerary', 'csv');
+          pageHtml = renderItinerary(itinData);
+          break;
+        case 'schedule':
+          const schedData = await fetchData('schedule', 'csv');
+          pageHtml = renderSchedule(schedData);
           break;
         default:
           pageHtml = `

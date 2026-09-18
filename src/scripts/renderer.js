@@ -172,8 +172,7 @@ export const renderHero = (config) => `
         ${config.site.mode ? `<p class="hero-mode">Conference Mode: <strong>${config.site.mode}</strong></p>` : ''}
         <div class="hero-actions">
           <button class="btn btn-primary" onclick="window.navigate('registration')">Register Now</button>
-          <button class="btn btn-outline" onclick="window.navigate('cfp')">Call for Papers</button>
-          ${config.site.articleSubmissionUrl ? `<a href="${config.site.articleSubmissionUrl}" class="btn btn-primary" target="_blank" rel="noopener noreferrer">Article submission link</a>` : ''}
+          <button class="btn btn-primary hero-btn-schedule" onclick="window.navigate('schedule')">(Tentative) Presentation Schedule Summary</button>
         </div>
       </div>
     </div>
@@ -666,3 +665,660 @@ export const renderNearbyGallery = (data) => {
     </section>
   `;
 };
+
+// Helper to parse standard CSV text respecting quotes and line breaks
+export const parseCSVRows = (csvText) => {
+  if (!csvText || typeof csvText !== 'string') return [];
+  const lines = [];
+  let row = [];
+  let cell = '';
+  let inQuotes = false;
+
+  for (let i = 0; i < csvText.length; i++) {
+    const char = csvText[i];
+    const nextChar = csvText[i + 1];
+
+    if (char === '"') {
+      if (inQuotes && nextChar === '"') {
+        cell += '"';
+        i++; // skip escaped quote
+      } else {
+        inQuotes = !inQuotes;
+      }
+    } else if (char === ',' && !inQuotes) {
+      row.push(cell.trim());
+      cell = '';
+    } else if ((char === '\r' || char === '\n') && !inQuotes) {
+      if (char === '\r' && nextChar === '\n') {
+        i++;
+      }
+      row.push(cell.trim());
+      if (row.some(c => c.length > 0)) {
+        lines.push(row);
+      }
+      row = [];
+      cell = '';
+    } else {
+      cell += char;
+    }
+  }
+  if (cell || row.length > 0) {
+    row.push(cell.trim());
+    if (row.some(c => c.length > 0)) {
+      lines.push(row);
+    }
+  }
+  return lines;
+};
+
+export const parseItineraryCSV = (csvText) => {
+  if (!csvText || typeof csvText !== 'string') {
+    return { title: 'Conference Itinerary', days: [] };
+  }
+
+  const lines = parseCSVRows(csvText);
+  if (lines.length < 2) return { title: 'Conference Itinerary', days: [] };
+
+  const headers = lines[0].map(h => h.trim().toLowerCase());
+  const getIndex = (possibleNames) => {
+    return headers.findIndex(h => possibleNames.some(p => h === p || h.includes(p)));
+  };
+
+  const dayIdx = getIndex(['day']);
+  const dateIdx = getIndex(['date']);
+  const themeIdx = getIndex(['theme', 'topic']);
+  const timeIdx = getIndex(['time', 'slot']);
+  const titleIdx = getIndex(['title', 'session title', 'name']);
+  const typeIdx = getIndex(['type', 'category']);
+  const locationIdx = getIndex(['location', 'venue', 'hall', 'room']);
+  const descIdx = getIndex(['description', 'desc', 'details', 'detail']);
+  const parallelIdx = getIndex(['parallel tracks', 'parallel', 'tracks']);
+
+  const daysMap = new Map();
+
+  for (let i = 1; i < lines.length; i++) {
+    const r = lines[i];
+    const dayName = (dayIdx !== -1 && r[dayIdx]) ? r[dayIdx].trim() : 'Day 1';
+    const dateStr = (dateIdx !== -1 && r[dateIdx]) ? r[dateIdx].trim() : '';
+    const themeStr = (themeIdx !== -1 && r[themeIdx]) ? r[themeIdx].trim() : '';
+    const time = (timeIdx !== -1 && r[timeIdx]) ? r[timeIdx].trim() : '';
+    const title = (titleIdx !== -1 && r[titleIdx]) ? r[titleIdx].trim() : '';
+    const type = (typeIdx !== -1 && r[typeIdx]) ? r[typeIdx].trim() : 'General';
+    const location = (locationIdx !== -1 && r[locationIdx]) ? r[locationIdx].trim() : '';
+    const description = (descIdx !== -1 && r[descIdx]) ? r[descIdx].trim() : '';
+    const parallelRaw = (parallelIdx !== -1 && r[parallelIdx]) ? r[parallelIdx].trim() : '';
+
+    if (!title && !time) continue;
+
+    if (!daysMap.has(dayName)) {
+      daysMap.set(dayName, {
+        day: dayName,
+        date: dateStr,
+        theme: themeStr,
+        sessions: []
+      });
+    }
+
+    const dayObj = daysMap.get(dayName);
+    if (!dayObj.date && dateStr) dayObj.date = dateStr;
+    if (!dayObj.theme && themeStr) dayObj.theme = themeStr;
+
+    // Parse parallel tracks if present
+    const parallel = [];
+    if (parallelRaw) {
+      const trackSegments = parallelRaw.split(/[\n;]+/).map(s => s.trim()).filter(Boolean);
+      for (const seg of trackSegments) {
+        let trackName = seg;
+        let hallName = '';
+        let focusText = '';
+
+        const hallMatch = seg.match(/\[(.*?)\]/);
+        if (hallMatch) {
+          hallName = hallMatch[1].trim();
+          trackName = trackName.replace(hallMatch[0], '').trim();
+        }
+
+        const focusMatch = trackName.match(/(?:\(?\s*focus\s*:\s*)([^\)]+)\)?/i);
+        if (focusMatch) {
+          focusText = focusMatch[1].trim();
+          trackName = trackName.replace(/(?:\(?\s*focus\s*:\s*)[^\)]+\)?/i, '').trim();
+        }
+
+        trackName = trackName.replace(/[\(\)\[\]\-]+$/, '').trim();
+
+        parallel.push({
+          track: trackName || seg,
+          hall: hallName || location,
+          focus: focusText || 'Oral Presentations & Research Discussions'
+        });
+      }
+    }
+
+    dayObj.sessions.push({
+      time: time,
+      title: title,
+      type: type,
+      location: location,
+      description: description,
+      ...(parallel.length > 0 ? { parallel } : {})
+    });
+  }
+
+  const defaultGuidelines = [
+    {
+      icon: "⏱️",
+      title: "Presentation Timing",
+      detail: "Each oral presentation is allotted 15 minutes total: 10–12 minutes for presentation and 3–5 minutes for Q&A."
+    },
+    {
+      icon: "💻",
+      title: "Slide Preparation",
+      detail: "Please prepare slides in standard 16:9 widescreen PPTX or PDF format. Laptops with projectors and presentation clickers are provided in all halls."
+    },
+    {
+      icon: "📍",
+      title: "Reporting Time",
+      detail: "Presenting authors are requested to report to their designated session hall at least 15 minutes prior to session commencement and upload their slides."
+    },
+    {
+      icon: "📜",
+      title: "Presentation Certificates",
+      detail: "Certificate of Presentation will be issued to the registered presenting author during the Valedictory Ceremony upon successful presentation."
+    }
+  ];
+
+  return {
+    title: 'Conference Itinerary',
+    subtitle: '4th International Conference on Automation & Computation (AutoCom-26)',
+    overview: {
+      dates: '22–24 October 2026',
+      venue: 'Graphic Era Hill University, Dehradun, India',
+      mode: 'Physical / In-Person Mode',
+      duration: '15 Minutes per Paper (10–12 min presentation + 3 min Q&A)'
+    },
+    days: Array.from(daysMap.values()),
+    guidelines: defaultGuidelines
+  };
+};
+
+export const renderItinerary = (rawInput) => {
+  if (!rawInput) return '<section class="section-placeholder"><div class="container"><p>Itinerary details unavailable.</p></div></section>';
+
+  // Parse if CSV text string is passed
+  const data = typeof rawInput === 'string' ? parseItineraryCSV(rawInput) : rawInput;
+
+  // Register interactive tab switching in window
+  window.switchItineraryDay = (dayKey) => {
+    document.querySelectorAll('.itinerary-tab-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.getAttribute('data-day') === String(dayKey));
+    });
+    document.querySelectorAll('.itinerary-day-block').forEach(block => {
+      if (dayKey === 'all') {
+        block.style.display = 'block';
+      } else {
+        block.style.display = block.getAttribute('data-day') === String(dayKey) ? 'block' : 'none';
+      }
+    });
+  };
+
+  const typeConfig = {
+    'Keynote': { class: 'type-keynote', icon: '🎙️', label: 'Keynote' },
+    'Technical': { class: 'type-technical', icon: '📊', label: 'Technical Session' },
+    'Ceremony': { class: 'type-ceremony', icon: '🏆', label: 'Ceremony' },
+    'Break': { class: 'type-break', icon: '☕', label: 'Break / Networking' },
+    'Panel': { class: 'type-panel', icon: '👥', label: 'Panel' },
+    'General': { class: 'type-general', icon: '📋', label: 'General' }
+  };
+
+  return `
+    <section class="schedule-page">
+      <div class="container">
+        <div class="schedule-header">
+          <span class="schedule-badge">CONFERENCE PROGRAM</span>
+          <h2 class="section-title">${data.title || 'Conference Itinerary'}</h2>
+          <p class="schedule-subtitle">${data.subtitle || '4th International Conference on Automation & Computation (AutoCom-26)'}</p>
+          
+          <div class="schedule-meta-grid">
+            <div class="meta-card">
+              <span class="meta-icon">📅</span>
+              <div class="meta-info">
+                <span class="meta-label">Dates</span>
+                <strong>${data.overview?.dates || '22–24 October 2026'}</strong>
+              </div>
+            </div>
+            <div class="meta-card">
+              <span class="meta-icon">📍</span>
+              <div class="meta-info">
+                <span class="meta-label">Venue</span>
+                <strong>${data.overview?.venue || 'Graphic Era Hill University, Dehradun'}</strong>
+              </div>
+            </div>
+            <div class="meta-card">
+              <span class="meta-icon">🏛️</span>
+              <div class="meta-info">
+                <span class="meta-label">Mode</span>
+                <strong>${data.overview?.mode || 'Physical (In-Person)'}</strong>
+              </div>
+            </div>
+            <div class="meta-card">
+              <span class="meta-icon">⏱️</span>
+              <div class="meta-info">
+                <span class="meta-label">Slot Duration</span>
+                <strong>${data.overview?.duration || '15 Mins / Paper'}</strong>
+              </div>
+            </div>
+          </div>
+
+          <div class="schedule-switch-banner">
+            <span>Looking for day-wise accepted papers and presentation slots?</span>
+            <button class="btn btn-sm btn-outline-accent" onclick="window.navigate('schedule')">
+              📑 View (Tentative) Presentation Schedule Summary
+            </button>
+          </div>
+        </div>
+
+        <!-- Day Filter Tabs -->
+        <div class="schedule-tabs-container">
+          <div class="schedule-tabs">
+            <button class="schedule-tab-btn itinerary-tab-btn active" data-day="all" onclick="window.switchItineraryDay('all')">
+              <span class="tab-icon">📑</span>
+              <span class="tab-text">All Days (Full Overview)</span>
+            </button>
+            ${(data.days || []).map((d, index) => `
+              <button class="schedule-tab-btn itinerary-tab-btn" data-day="${index}" onclick="window.switchItineraryDay(${index})">
+                <span class="tab-icon">🗓️</span>
+                <span class="tab-text">${d.day} <small>(${d.date.split(',')[1]?.trim() || d.date})</small></span>
+              </button>
+            `).join('')}
+          </div>
+        </div>
+
+        <!-- Day Timelines -->
+        <div class="schedule-timeline-wrapper">
+          ${(data.days || []).map((d, index) => `
+            <div class="schedule-day-block itinerary-day-block" data-day="${index}">
+              <div class="day-banner">
+                <div class="day-badge">${d.day}</div>
+                <div class="day-title-info">
+                  <h3>${d.date}</h3>
+                  <p class="day-theme">${d.theme}</p>
+                </div>
+              </div>
+
+              <div class="timeline-list">
+                ${(d.sessions || []).map(session => {
+                  const type = typeConfig[session.type] || typeConfig['General'];
+                  return `
+                    <div class="timeline-item ${type.class}">
+                      <div class="timeline-marker">
+                        <span class="marker-dot"></span>
+                        <span class="marker-line"></span>
+                      </div>
+                      
+                      <div class="timeline-card">
+                        <div class="session-top">
+                          <span class="session-time">⏰ ${session.time}</span>
+                          <span class="session-badge ${type.class}">${type.icon} ${session.type}</span>
+                        </div>
+                        
+                        <h4 class="session-title">${session.title}</h4>
+                        
+                        ${session.location ? `
+                          <div class="session-location">
+                            <span>📍 ${session.location}</span>
+                          </div>
+                        ` : ''}
+
+                        ${session.description ? `
+                          <p class="session-desc">${session.description}</p>
+                        ` : ''}
+
+                        ${session.parallel && session.parallel.length > 0 ? `
+                          <div class="parallel-sessions">
+                            <div class="parallel-heading">Parallel Technical Tracks:</div>
+                            <div class="parallel-grid">
+                              ${session.parallel.map(p => `
+                                <div class="parallel-card">
+                                  <div class="parallel-track">${p.track}</div>
+                                  <div class="parallel-hall">📍 ${p.hall}</div>
+                                  <div class="parallel-focus">💡 <strong>Focus:</strong> ${p.focus}</div>
+                                </div>
+                              `).join('')}
+                            </div>
+                          </div>
+                        ` : ''}
+                      </div>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+            </div>
+          `).join('')}
+        </div>
+
+        <!-- Presenter Guidelines Section -->
+        ${data.guidelines && data.guidelines.length > 0 ? `
+          <div class="presenter-guidelines-section">
+            <h3 class="guidelines-heading">📌 Important Guidelines for Presenters</h3>
+            <div class="presenter-guidelines-grid">
+              ${data.guidelines.map(g => `
+                <div class="presenter-guideline-card">
+                  <div class="guideline-icon">${g.icon}</div>
+                  <h4>${g.title}</h4>
+                  <p>${g.detail}</p>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        ` : ''}
+
+        <!-- Schedule CTA Buttons -->
+        <div class="schedule-cta">
+          <button class="btn btn-primary" onclick="window.navigate('schedule')">View (Tentative) Presentation Schedule Summary</button>
+          <button class="btn btn-outline" onclick="window.navigate('registration')">Proceed to Registration</button>
+          <button class="btn btn-outline" onclick="window.navigate('tracks')">View Technical Tracks</button>
+        </div>
+      </div>
+    </section>
+  `;
+};
+
+export const parseScheduleCSV = (csvText) => {
+  if (!csvText || typeof csvText !== 'string') {
+    return { title: '(Tentative) Presentation Schedule Summary', days: [] };
+  }
+
+  const lines = parseCSVRows(csvText);
+  if (lines.length < 2) return { title: '(Tentative) Presentation Schedule Summary', days: [] };
+
+  const headers = lines[0].map(h => h.trim().toLowerCase());
+  
+  const getIndex = (possibleNames) => {
+    return headers.findIndex(h => possibleNames.some(p => h === p || h.includes(p)));
+  };
+
+  const dayIdx = getIndex(['day']);
+  const dateIdx = getIndex(['date']);
+  const sessionIdx = getIndex(['session', 'sessionname', 'session_name']);
+  const trackIdx = getIndex(['track']);
+  const hallIdx = getIndex(['hall', 'location', 'room']);
+  const timeIdx = getIndex(['time', 'slot']);
+  const pidIdx = getIndex(['paper id', 'paperid', 'paper_id', 'id']);
+  const titleIdx = getIndex(['title', 'paper title', 'name']);
+  const regIdx = getIndex(['registration', 'reg', 'status']);
+  const receiptIdx = getIndex(['receipt_link', 'receiptlink', 'receipt', 'receipt_url', 'download_receipt']);
+  const commentIdx = getIndex(['session_comment', 'sessioncomment', 'comment', 'session_note', 'note']);
+
+  // Group rows into days and sessions
+  const daysMap = new Map();
+
+  for (let i = 1; i < lines.length; i++) {
+    const r = lines[i];
+    const dayName = (dayIdx !== -1 && r[dayIdx]) ? r[dayIdx].trim() : 'Day 1';
+    const dateStr = (dateIdx !== -1 && r[dateIdx]) ? r[dateIdx].trim() : '';
+    const sessionName = (sessionIdx !== -1 && r[sessionIdx]) ? r[sessionIdx].trim() : '';
+    const track = (trackIdx !== -1 && r[trackIdx]) ? r[trackIdx].trim() : '';
+    const hall = (hallIdx !== -1 && r[hallIdx]) ? r[hallIdx].trim() : '';
+    const time = (timeIdx !== -1 && r[timeIdx]) ? r[timeIdx].trim() : '';
+    const paperId = (pidIdx !== -1 && r[pidIdx]) ? r[pidIdx].trim() : `PAPER-${i}`;
+    const paperTitle = (titleIdx !== -1 && r[titleIdx]) ? r[titleIdx].trim() : '';
+    const registration = (regIdx !== -1 && r[regIdx]) ? r[regIdx].trim() : '';
+    const receiptLink = (receiptIdx !== -1 && r[receiptIdx]) ? r[receiptIdx].trim() : '';
+    const sessionComment = (commentIdx !== -1 && r[commentIdx]) ? r[commentIdx].trim() : '';
+
+    if (!daysMap.has(dayName)) {
+      daysMap.set(dayName, {
+        day: dayName,
+        date: dateStr,
+        time: time,
+        comment: sessionComment,
+        sessionsMap: new Map()
+      });
+    }
+
+    const dayObj = daysMap.get(dayName);
+    if (!dayObj.date && dateStr) dayObj.date = dateStr;
+    if (!dayObj.time && time) dayObj.time = time;
+    if (!dayObj.comment && sessionComment) dayObj.comment = sessionComment;
+
+    const sKey = sessionName || track || 'main_session';
+    if (!dayObj.sessionsMap.has(sKey)) {
+      dayObj.sessionsMap.set(sKey, {
+        sessionName: sessionName,
+        track: track,
+        hall: hall,
+        time: time,
+        papers: []
+      });
+    }
+
+    const sessionObj = dayObj.sessionsMap.get(sKey);
+    if (!sessionObj.hall && hall) sessionObj.hall = hall;
+    if (!sessionObj.time && time) sessionObj.time = time;
+
+    sessionObj.papers.push({
+      paperId: paperId,
+      title: paperTitle,
+      registration: registration,
+      receiptLink: receiptLink
+    });
+  }
+
+  const days = Array.from(daysMap.values()).map(d => ({
+    day: d.day,
+    date: d.date,
+    time: d.time || (Array.from(d.sessionsMap.values())[0]?.time || ''),
+    comment: d.comment || '',
+    sessions: Array.from(d.sessionsMap.values())
+  }));
+
+  return {
+    title: '(Tentative) Presentation Schedule Summary',
+    subtitle: 'Day-wise Accepted Paper IDs and Presentation Titles',
+    days: days
+  };
+};
+
+export const renderSchedule = (rawInput) => {
+  if (!rawInput) return '<section class="section-placeholder"><div class="container"><p>Presentation schedule unavailable.</p></div></section>';
+
+  // Parse if CSV string is provided
+  const data = typeof rawInput === 'string' ? parseScheduleCSV(rawInput) : rawInput;
+
+  // Interactive filtering for day tabs
+  window.switchPaperDay = (dayKey) => {
+    document.querySelectorAll('.paper-tab-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.getAttribute('data-day') === String(dayKey));
+    });
+    document.querySelectorAll('.paper-day-container').forEach(block => {
+      if (dayKey === 'all') {
+        block.style.display = 'block';
+      } else {
+        block.style.display = block.getAttribute('data-day') === String(dayKey) ? 'block' : 'none';
+      }
+    });
+  };
+
+  // Interactive search filter
+  window.filterPapers = (query) => {
+    const q = (query || '').toLowerCase().trim();
+    const rows = document.querySelectorAll('.paper-row-item');
+    let visibleCount = 0;
+
+    rows.forEach(row => {
+      const pid = row.getAttribute('data-pid') || '';
+      const title = row.getAttribute('data-title') || '';
+      const track = row.getAttribute('data-track') || '';
+      const match = pid.includes(q) || title.includes(q) || track.includes(q);
+
+      row.style.display = match ? 'flex' : 'none';
+      if (match) visibleCount++;
+    });
+
+    // Hide/show empty session blocks
+    document.querySelectorAll('.paper-session-block').forEach(sBlock => {
+      const visibleRows = sBlock.querySelectorAll('.paper-row-item:not([style*="display: none"])');
+      sBlock.style.display = visibleRows.length > 0 ? 'block' : (q ? 'none' : 'block');
+    });
+
+    // Hide/show day blocks if empty during search
+    document.querySelectorAll('.paper-day-container').forEach(dBlock => {
+      const visibleRows = dBlock.querySelectorAll('.paper-row-item:not([style*="display: none"])');
+      const activeTab = document.querySelector('.paper-tab-btn.active')?.getAttribute('data-day') || 'all';
+      const isDayActive = activeTab === 'all' || dBlock.getAttribute('data-day') === activeTab;
+      dBlock.style.display = isDayActive && (visibleRows.length > 0 || !q) ? 'block' : 'none';
+    });
+
+    const noResultsMsg = document.getElementById('no-paper-results');
+    if (noResultsMsg) {
+      noResultsMsg.style.display = (visibleCount === 0 && q) ? 'block' : 'none';
+    }
+  };
+
+  let totalPapers = 0;
+  (data.days || []).forEach(d => {
+    (d.sessions || []).forEach(s => {
+      totalPapers += (s.papers || []).length;
+    });
+  });
+
+  return `
+    <section class="schedule-page presentation-summary-page">
+      <div class="container">
+        <div class="schedule-header">
+          <h2 class="section-title">${data.title || '(Tentative) Presentation Schedule Summary'}</h2>
+          
+          <div class="presentation-info-banner">
+            <div class="info-pill">
+              <span class="info-icon">📍</span>
+              <span>Physical Mode at Graphic Era Hill University</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Search and Quick Filter Bar -->
+        <div class="paper-search-wrapper">
+          <div class="paper-search-box">
+            <span class="search-icon">🔍</span>
+            <input 
+              type="text" 
+              id="paper-search-input" 
+              class="paper-search-input" 
+              placeholder="Search by Paper ID (e.g. 91, 104) or Paper Title..." 
+              oninput="window.filterPapers(this.value)"
+            />
+            <button class="clear-search-btn" onclick="document.getElementById('paper-search-input').value=''; window.filterPapers('');">Clear</button>
+          </div>
+        </div>
+
+        <!-- Day Filter Tabs -->
+        <div class="schedule-tabs-container">
+          <div class="schedule-tabs">
+            <button class="schedule-tab-btn paper-tab-btn active" data-day="all" onclick="window.switchPaperDay('all')">
+              <span class="tab-icon">📚</span>
+              <span class="tab-text">All Sessions</span>
+            </button>
+            ${(data.days || []).map((d, index) => `
+              <button class="schedule-tab-btn paper-tab-btn" data-day="${index}" onclick="window.switchPaperDay(${index})">
+                <span class="tab-icon">🗓️</span>
+                <span class="tab-text">${d.day}</span>
+              </button>
+            `).join('')}
+          </div>
+        </div>
+
+        <!-- No Results Fallback -->
+        <div id="no-paper-results" class="no-paper-results" style="display: none;">
+          <div class="empty-state-card">
+            <span class="empty-icon">🔎</span>
+            <h3>No Matching Papers Found</h3>
+            <p>Try searching with another Paper ID keyword or paper title.</p>
+            <button class="btn btn-sm btn-outline" onclick="document.getElementById('paper-search-input').value=''; window.filterPapers('');">Reset Search</button>
+          </div>
+        </div>
+
+        <!-- Day-wise Paper Sections -->
+        <div class="papers-list-container">
+          ${(data.days || []).map((d, dIdx) => `
+            <div class="paper-day-container" data-day="${dIdx}">
+              <div class="paper-day-header">
+                <div class="day-pill">${d.day}</div>
+                <div class="day-header-meta">
+                  <h3>${d.date}${d.time ? ` (${d.time})` : ''}</h3>
+                  ${d.comment ? `<span>${d.comment}</span>` : ''}
+                </div>
+              </div>
+
+              ${(d.sessions || []).map(session => `
+                <div class="paper-session-block">
+                  ${(session.sessionName || session.track || session.hall) ? `
+                    <div class="session-section-header">
+                      <div class="session-section-title">
+                        ${session.sessionName ? `<h4>${session.sessionName}</h4>` : ''}
+                        ${session.track ? `<span class="session-track-badge">${session.track}</span>` : ''}
+                      </div>
+                      <div class="session-meta-tags">
+                        ${session.time ? `<span class="meta-tag">⏰ ${session.time}</span>` : ''}
+                        ${session.hall ? `<span class="meta-tag">📍 ${session.hall}</span>` : ''}
+                      </div>
+                    </div>
+                  ` : ''}
+
+                  <div class="papers-table-card">
+                    <div class="papers-table-header">
+                      <span class="col-pid">Paper ID</span>
+                      <span class="col-title">Paper Title</span>
+                      <span class="col-reg">Registration</span>
+                    </div>
+                    <div class="papers-rows-list">
+                      ${(session.papers || []).map((paper, pIdx) => `
+                        <div class="paper-row-item" 
+                             data-pid="${(paper.paperId || '').toLowerCase()}" 
+                             data-title="${(paper.title || '').toLowerCase()}" 
+                             data-track="${(session.track || '').toLowerCase()}">
+                          <div class="col-pid">
+                            <span class="paper-id-badge">#${paper.paperId}</span>
+                          </div>
+                          <div class="col-title">
+                            <h5 class="paper-name">${paper.title}</h5>
+                            ${(session.track || session.hall) ? `
+                              <div class="paper-sub-meta">
+                                ${session.track ? `<span class="sub-track">${session.track}</span>` : ''}
+                                ${session.hall ? `<span class="sub-hall">📍 ${session.hall}</span>` : ''}
+                              </div>
+                            ` : ''}
+                          </div>
+                          <div class="col-reg">
+                            ${(paper.registration || '').toLowerCase() === 'verified' ? `
+                              <span class="reg-badge reg-verified">Verified</span>
+                              <a href="${paper.receiptLink && paper.receiptLink !== '#' ? paper.receiptLink : '#'}" 
+                                 class="receipt-download-link" 
+                                 ${paper.receiptLink && paper.receiptLink !== '#' ? 'target="_blank" rel="noopener noreferrer"' : ''} 
+                                 download>
+                                Download receipt
+                              </a>
+                            ` : `
+                              <span class="reg-empty">—</span>
+                            `}
+                          </div>
+                        </div>
+                      `).join('')}
+                    </div>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          `).join('')}
+        </div>
+
+        <!-- Schedule CTA Buttons -->
+        <div class="schedule-cta" style="margin-top: 3.5rem;">
+          <button class="btn btn-primary" onclick="window.navigate('registration')">Proceed to Registration</button>
+          <button class="btn btn-outline" onclick="window.navigate('guidelines')">Author Guidelines</button>
+          <button class="btn btn-outline" onclick="window.navigate('tracks')">Technical Tracks</button>
+        </div>
+      </div>
+    </section>
+  `;
+};
+

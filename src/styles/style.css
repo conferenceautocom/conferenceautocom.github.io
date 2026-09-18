@@ -695,7 +695,7 @@ footer h4 {
     grid-template-columns: 1fr;
 }
 
-@media (min-width: 1024px) {
+@media (min-width: 900px) {
     .guidelines-grid {
         grid-template-columns: repeat(2, 1fr);
     }
@@ -1445,3 +1445,955 @@ footer h4 {
     color: white;
     font-weight: 700;
 }
+
+/* =========================================
+   Presentation Schedule Summary Styles
+   ========================================= */
+
+.schedule-page {
+    padding: 3.5rem 0 5rem;
+    background: #f8fafc;
+    min-height: calc(100vh - 180px);
+}
+
+.schedule-header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+}
+
+.schedule-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.35rem 1.1rem;
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    border-radius: 99px;
+    margin-bottom: 0.75rem;
+    border: 1px solid rgba(37, 99, 235, 0.2);
+}
+
+.schedule-subtitle {
+    color: var(--text-muted);
+    font-size: 1.15rem;
+    margin-top: 0.35rem;
+    margin-bottom: 2rem;
+}
+
+.schedule-meta-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.25rem;
+    max-width: 1050px;
+    margin: 0 auto;
+}
+
+.meta-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: #ffffff;
+    padding: 1.1rem 1.35rem;
+    border-radius: 1rem;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-sm);
+    text-align: left;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.meta-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--accent-soft);
+}
+
+.meta-icon {
+    font-size: 1.8rem;
+    background: var(--surface);
+    padding: 0.6rem;
+    border-radius: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border);
+}
+
+.meta-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.meta-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    font-weight: 600;
+}
+
+.meta-info strong {
+    font-size: 0.95rem;
+    color: var(--primary);
+    font-weight: 700;
+}
+
+/* Schedule Day Tabs */
+.schedule-tabs-container {
+    display: flex;
+    justify-content: center;
+    margin: 2.5rem 0 2rem;
+}
+
+.schedule-tabs {
+    display: inline-flex;
+    background: #ffffff;
+    padding: 0.4rem;
+    border-radius: 99px;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-sm);
+    gap: 0.4rem;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.schedule-tab-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.65rem 1.4rem;
+    border-radius: 99px;
+    border: none;
+    background: transparent;
+    color: var(--text-main);
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    font-family: var(--font-body);
+}
+
+.schedule-tab-btn:hover {
+    background: var(--surface);
+    color: var(--accent);
+}
+
+.schedule-tab-btn.active {
+    background: var(--accent);
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+}
+
+.schedule-tab-btn.active small {
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.schedule-tab-btn small {
+    font-weight: 400;
+    color: var(--text-muted);
+}
+
+/* Timeline Wrapper */
+.schedule-timeline-wrapper {
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.schedule-day-block {
+    margin-bottom: 3.5rem;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.day-banner {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    color: #ffffff;
+    padding: 1.25rem 1.75rem;
+    border-radius: 1rem;
+    margin-bottom: 1.5rem;
+    box-shadow: var(--shadow-md);
+}
+
+.day-badge {
+    background: var(--accent);
+    color: #ffffff;
+    font-weight: 800;
+    font-size: 1.1rem;
+    padding: 0.45rem 1.1rem;
+    border-radius: 0.6rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.day-title-info h3 {
+    color: #ffffff;
+    font-size: 1.35rem;
+    margin-bottom: 0.2rem;
+}
+
+.day-theme {
+    color: #94a3b8;
+    font-size: 0.92rem;
+    margin: 0;
+}
+
+/* Timeline Items */
+.timeline-list {
+    position: relative;
+    padding-left: 1.75rem;
+}
+
+.timeline-list::before {
+    content: '';
+    position: absolute;
+    top: 15px;
+    bottom: 15px;
+    left: 8px;
+    width: 2px;
+    background: #cbd5e1;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 1.5rem;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: -1.75rem;
+    top: 1.5rem;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.marker-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #ffffff;
+    border: 3px solid var(--accent);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    z-index: 2;
+}
+
+.timeline-card {
+    background: #ffffff;
+    border-radius: 1rem;
+    border: 1px solid var(--border);
+    padding: 1.5rem 1.75rem;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.25s ease;
+}
+
+.timeline-card:hover {
+    border-color: #cbd5e1;
+    box-shadow: var(--shadow-md);
+    transform: translateX(3px);
+}
+
+.session-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.session-time {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--primary);
+    background: var(--surface);
+    padding: 0.35rem 0.85rem;
+    border-radius: 0.5rem;
+    border: 1px solid var(--border);
+}
+
+.session-badge {
+    font-size: 0.8rem;
+    font-weight: 700;
+    padding: 0.25rem 0.85rem;
+    border-radius: 99px;
+    letter-spacing: 0.03em;
+}
+
+.session-badge.type-keynote {
+    background: #fef3c7;
+    color: #92400e;
+    border: 1px solid #fde68a;
+}
+
+.session-badge.type-technical {
+    background: #dbeafe;
+    color: #1e40af;
+    border: 1px solid #bfdbfe;
+}
+
+.session-badge.type-ceremony {
+    background: #f3e8ff;
+    color: #6b21a8;
+    border: 1px solid #e9d5ff;
+}
+
+.session-badge.type-break {
+    background: #d1fae5;
+    color: #065f46;
+    border: 1px solid #a7f3d0;
+}
+
+.session-badge.type-panel {
+    background: #cffafe;
+    color: #155e75;
+    border: 1px solid #a5f3fc;
+}
+
+.session-badge.type-general {
+    background: #f1f5f9;
+    color: #475569;
+    border: 1px solid #e2e8f0;
+}
+
+.session-title {
+    font-size: 1.2rem;
+    color: var(--primary);
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+}
+
+.session-location {
+    font-size: 0.88rem;
+    color: #475569;
+    font-weight: 600;
+    margin-bottom: 0.6rem;
+}
+
+.session-desc {
+    color: var(--text-muted);
+    font-size: 0.92rem;
+    line-height: 1.55;
+    margin: 0;
+}
+
+/* Parallel Sessions */
+.parallel-sessions {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px dashed var(--border);
+}
+
+.parallel-heading {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: var(--accent);
+    margin-bottom: 0.75rem;
+}
+
+.parallel-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem;
+}
+
+.parallel-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 0.75rem;
+    padding: 1rem 1.15rem;
+    transition: all 0.2s ease;
+}
+
+.parallel-card:hover {
+    background: #ffffff;
+    border-color: var(--accent);
+    box-shadow: var(--shadow-sm);
+}
+
+.parallel-track {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--primary);
+    margin-bottom: 0.35rem;
+}
+
+.parallel-hall {
+    font-size: 0.85rem;
+    color: var(--accent);
+    font-weight: 600;
+    margin-bottom: 0.4rem;
+}
+
+.parallel-focus {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    line-height: 1.45;
+}
+
+/* Presenter Guidelines */
+.presenter-guidelines-section {
+    margin: 4rem auto 3rem;
+    max-width: 1000px;
+    background: #ffffff;
+    border-radius: 1.25rem;
+    border: 1px solid var(--border);
+    padding: 2.5rem;
+    box-shadow: var(--shadow-sm);
+}
+
+.guidelines-heading {
+    font-size: 1.4rem;
+    color: var(--primary);
+    margin-bottom: 1.75rem;
+    text-align: center;
+}
+
+.presenter-guidelines-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.5rem;
+}
+
+.presenter-guideline-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 1rem;
+    padding: 1.5rem 1.25rem;
+    text-align: center;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.presenter-guideline-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--accent-soft);
+}
+
+.guideline-icon {
+    font-size: 2.2rem;
+    margin-bottom: 0.75rem;
+}
+
+.presenter-guideline-card h4 {
+    font-size: 1.05rem;
+    color: var(--primary);
+    margin-bottom: 0.5rem;
+}
+
+.presenter-guideline-card p {
+    font-size: 0.88rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+    margin: 0;
+}
+
+/* Schedule CTA */
+.schedule-cta {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-top: 3rem;
+    flex-wrap: wrap;
+}
+
+/* Hero Button Schedule styling */
+.hero-btn-schedule {
+    background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%);
+    box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.hero-btn-schedule:hover {
+    background: linear-gradient(135deg, #1e40af 0%, #1d4ed8 100%);
+    box-shadow: 0 6px 20px rgba(37, 99, 235, 0.6);
+    transform: translateY(-2px);
+}
+
+/* Schedule Switch Banner */
+.schedule-switch-banner {
+    display: inline-flex;
+    align-items: center;
+    gap: 1rem;
+    background: #ffffff;
+    border: 1px solid var(--border);
+    padding: 0.75rem 1.25rem;
+    border-radius: 99px;
+    margin-top: 1.5rem;
+    box-shadow: var(--shadow-sm);
+    flex-wrap: wrap;
+    justify-content: center;
+    font-size: 0.92rem;
+    color: var(--text-muted);
+}
+
+.btn-outline-accent {
+    background: transparent;
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    padding: 0.4rem 1rem;
+    border-radius: 99px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-outline-accent:hover {
+    background: var(--accent);
+    color: #ffffff;
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
+}
+
+/* Presentation Info Banner */
+.presentation-info-banner {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin: 1.5rem auto 0;
+    max-width: 900px;
+}
+
+.info-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: #ffffff;
+    border: 1px solid var(--border);
+    padding: 0.55rem 1.15rem;
+    border-radius: 99px;
+    font-size: 0.88rem;
+    color: var(--text-main);
+    box-shadow: var(--shadow-sm);
+}
+
+.info-pill strong {
+    color: var(--accent);
+}
+
+.info-icon {
+    font-size: 1.1rem;
+}
+
+/* Paper Search Bar */
+.paper-search-wrapper {
+    max-width: 750px;
+    margin: 2rem auto 0.5rem;
+    padding: 0 1rem;
+}
+
+.paper-search-box {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: #ffffff;
+    border: 2px solid var(--border);
+    border-radius: 99px;
+    padding: 0.4rem 0.6rem 0.4rem 1.25rem;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.25s ease;
+}
+
+.paper-search-box:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+}
+
+.paper-search-box .search-icon {
+    font-size: 1.2rem;
+    margin-right: 0.75rem;
+    opacity: 0.6;
+}
+
+.paper-search-input {
+    flex: 1;
+    border: none;
+    outline: none;
+    font-size: 0.95rem;
+    font-family: var(--font-body);
+    background: transparent;
+    color: var(--text-main);
+}
+
+.paper-search-input::placeholder {
+    color: #94a3b8;
+}
+
+.clear-search-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 0.35rem 0.85rem;
+    border-radius: 99px;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.clear-search-btn:hover {
+    background: #e2e8f0;
+    color: var(--text-main);
+}
+
+/* Paper Day & Session Layout */
+.papers-list-container {
+    max-width: 1050px;
+    margin: 0 auto;
+}
+
+.paper-day-container {
+    margin-bottom: 3.5rem;
+    animation: fadeIn 0.3s ease;
+}
+
+.paper-day-header {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    color: #ffffff;
+    padding: 1.25rem 1.75rem;
+    border-radius: 1rem;
+    margin-bottom: 1.75rem;
+    box-shadow: var(--shadow-md);
+}
+
+.day-pill {
+    background: var(--accent);
+    color: #ffffff;
+    font-weight: 800;
+    font-size: 1.1rem;
+    padding: 0.45rem 1.1rem;
+    border-radius: 0.6rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.day-header-meta h3 {
+    color: #ffffff;
+    font-size: 1.35rem;
+    margin-bottom: 0.2rem;
+}
+
+.day-header-meta span {
+    color: #94a3b8;
+    font-size: 0.88rem;
+}
+
+/* Paper Session Block */
+.paper-session-block {
+    margin-bottom: 2rem;
+    background: #ffffff;
+    border-radius: 1rem;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+    transition: box-shadow 0.2s ease;
+}
+
+.paper-session-block:hover {
+    box-shadow: var(--shadow-md);
+}
+
+.session-section-header {
+    background: var(--surface);
+    padding: 1.2rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.session-section-title h4 {
+    font-size: 1.15rem;
+    color: var(--primary);
+    margin-bottom: 0.35rem;
+    font-weight: 700;
+}
+
+.session-track-badge {
+    display: inline-block;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--accent);
+    background: var(--accent-soft);
+    padding: 0.2rem 0.65rem;
+    border-radius: 0.4rem;
+}
+
+.session-meta-tags {
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+}
+
+.meta-tag {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #475569;
+    background: #ffffff;
+    padding: 0.3rem 0.75rem;
+    border-radius: 99px;
+    border: 1px solid var(--border);
+}
+
+.papers-count-tag {
+    background: #dbeafe;
+    color: #1e40af;
+    border-color: #bfdbfe;
+}
+
+/* Papers Table Card */
+.papers-table-card {
+    width: 100%;
+}
+
+.papers-table-header {
+    display: flex;
+    background: #f1f5f9;
+    padding: 0.35rem 1.25rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #64748b;
+    border-bottom: 1px solid var(--border);
+}
+
+.papers-rows-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.paper-row-item {
+    display: flex;
+    align-items: center;
+    padding: 0.3rem 1.25rem;
+    border-bottom: 1px solid #f1f5f9;
+    transition: background-color 0.15s ease;
+}
+
+.paper-row-item:last-child {
+    border-bottom: none;
+}
+
+.paper-row-item:hover {
+    background-color: #f8fafc;
+}
+
+.col-pid {
+    width: 90px;
+    flex-shrink: 0;
+}
+
+.col-title {
+    flex: 1;
+    padding-right: 1.5rem;
+}
+
+.col-reg {
+    width: 130px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 0.15rem;
+    text-align: right;
+}
+
+.reg-badge {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 0.12rem 0.5rem;
+    border-radius: 99px;
+    letter-spacing: 0.02em;
+    line-height: 1.2;
+}
+
+.reg-verified {
+    background: #ecfdf5;
+    color: #059669;
+    border: 1px solid #a7f3d0;
+}
+
+.receipt-download-link {
+    font-size: 0.68rem;
+    color: var(--accent);
+    text-decoration: underline;
+    font-weight: 500;
+    line-height: 1.2;
+    transition: color 0.15s ease;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.receipt-download-link:hover {
+    color: #1d4ed8;
+    text-decoration: none;
+}
+
+.reg-empty {
+    color: #94a3b8;
+    font-size: 0.8rem;
+}
+
+.paper-id-badge {
+    display: inline-block;
+    font-family: monospace;
+    font-size: 0.72rem;
+    font-weight: 600;
+    background: #0f172a;
+    color: #38bdf8;
+    padding: 0.15rem 0.45rem;
+    border-radius: 0.3rem;
+    letter-spacing: 0.02em;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+.paper-name {
+    font-size: 0.775rem;
+    font-weight: 400;
+    color: #1e293b;
+    line-height: 1.35;
+    margin: 0;
+}
+
+.paper-sub-meta {
+    display: flex;
+    gap: 0.75rem;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.sub-track {
+    color: var(--accent);
+    font-weight: 500;
+}
+
+.slot-badge {
+    display: inline-block;
+    font-size: 0.82rem;
+    font-weight: 600;
+    background: #f1f5f9;
+    color: #475569;
+    padding: 0.35rem 0.75rem;
+    border-radius: 99px;
+    border: 1px solid #e2e8f0;
+}
+
+/* No Results Card */
+.no-paper-results {
+    max-width: 600px;
+    margin: 3rem auto;
+    text-align: center;
+}
+
+.empty-state-card {
+    background: #ffffff;
+    border: 1px dashed var(--border);
+    border-radius: 1.25rem;
+    padding: 3rem 2rem;
+}
+
+.empty-icon {
+    font-size: 3rem;
+    display: block;
+    margin-bottom: 1rem;
+}
+
+.empty-state-card h3 {
+    color: var(--primary);
+    font-size: 1.3rem;
+    margin-bottom: 0.5rem;
+}
+
+.empty-state-card p {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    margin-bottom: 1.5rem;
+}
+
+@media (max-width: 768px) {
+    .schedule-tabs {
+        border-radius: 1rem;
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .schedule-tab-btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .day-banner, .paper-day-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+
+    .timeline-list {
+        padding-left: 1.25rem;
+    }
+
+    .timeline-list::before {
+        left: 4px;
+    }
+
+    .timeline-marker {
+        left: -1.25rem;
+    }
+
+    .session-top, .session-section-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+
+    .parallel-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .presenter-guidelines-section {
+        padding: 1.5rem;
+    }
+
+    .papers-table-header {
+        display: none;
+    }
+
+    .paper-row-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.6rem;
+    }
+
+    .col-pid, .col-title, .col-reg {
+        width: 100%;
+        text-align: left;
+        padding-right: 0;
+    }
+
+    .schedule-switch-banner {
+        border-radius: 1rem;
+        flex-direction: column;
+        text-align: center;
+    }
+}
