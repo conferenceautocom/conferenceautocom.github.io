@@ -172,30 +172,94 @@ export const renderHero = (config) => `
         ${config.site.mode ? `<p class="hero-mode">Conference Mode: <strong>${config.site.mode}</strong></p>` : ''}
         <div class="hero-actions">
           <button class="btn btn-primary" onclick="window.navigate('registration')">Register Now</button>
-          <button class="btn btn-primary hero-btn-schedule" onclick="window.navigate('schedule')">(Tentative) Presentation Schedule Summary</button>
+          <button class="btn btn-primary hero-btn-itinerary" onclick="window.navigate('itinerary')">🗓️ (Tentative) Conference Itinerary</button>
+          <button class="btn btn-primary hero-btn-schedule" onclick="window.navigate('schedule')">📑 (Tentative) Presentation Schedule Summary</button>
         </div>
       </div>
     </div>
   </section>
 `;
 
-export const renderSpeakers = (speakers) => `
-  <section class="speakers">
-    <div class="container">
-      <h2 class="section-title">Distinguished Speakers</h2>
-      <div class="data-grid">
-        ${speakers.map(s => `
-          <div class="card speaker-card">
-            <div class="speaker-role">${s.role}</div>
-            <h3>${s.name}</h3>
-            <p class="affiliation">${s.affiliation}</p>
-            <p class="bio">${s.bio}</p>
+export const parseSpeakersCSV = (csvText) => {
+  if (!csvText || typeof csvText !== 'string') return [];
+  const lines = parseCSVRows(csvText);
+  if (lines.length < 2) return [];
+
+  const headers = lines[0].map(h => h.trim().toLowerCase());
+  const getIndex = (names) => headers.findIndex(h => names.some(n => h === n || h.includes(n)));
+
+  const idIdx = getIndex(['id']);
+  const nameIdx = getIndex(['name', 'speaker', 'speaker name']);
+  const roleIdx = getIndex(['role', 'type', 'designation']);
+  const affIdx = getIndex(['affiliation', 'institution', 'organization', 'org']);
+  const bioIdx = getIndex(['bio', 'description', 'biography', 'about']);
+  const imgIdx = getIndex(['image', 'photo', 'avatar', 'img']);
+
+  const speakers = [];
+  for (let i = 1; i < lines.length; i++) {
+    const row = lines[i];
+    const name = (nameIdx !== -1 && row[nameIdx]) ? row[nameIdx].trim() : '';
+    if (!name) continue;
+
+    speakers.push({
+      id: (idIdx !== -1 && row[idIdx]) ? row[idIdx].trim() : String(i),
+      name: name,
+      role: (roleIdx !== -1 && row[roleIdx]) ? row[roleIdx].trim() : 'Keynote Speaker',
+      affiliation: (affIdx !== -1 && row[affIdx]) ? row[affIdx].trim() : '',
+      bio: (bioIdx !== -1 && row[bioIdx]) ? row[bioIdx].trim() : '',
+      image: (imgIdx !== -1 && row[imgIdx]) ? row[imgIdx].trim() : ''
+    });
+  }
+  return speakers;
+};
+
+export const renderSpeakers = (rawInput) => {
+  const speakers = typeof rawInput === 'string' ? parseSpeakersCSV(rawInput) : (rawInput || []);
+
+  if (!Array.isArray(speakers) || speakers.length === 0) {
+    return `
+      <section class="speakers-page">
+        <div class="container" style="text-align: center; padding: 4rem 0;">
+          <h2 class="section-title">Distinguished Speakers</h2>
+          <div class="coming-soon-banner" style="max-width: 600px; margin: 0 auto; background: var(--surface); padding: 4rem; border-radius: 1.5rem; border: 1px dashed var(--accent);">
+            <span style="font-size: 4rem; display: block; margin-bottom: 1.5rem;">🎙️</span>
+            <h3>Distinguished Speakers Coming Soon</h3>
+            <p style="color: var(--text-muted); font-size: 1.1rem; margin-top: 1rem;">
+              We are currently in the process of inviting leading experts and pioneers in the fields of Automation and Computation. The full list of speakers will be announced shortly.
+            </p>
           </div>
-        `).join('')}
+        </div>
+      </section>
+    `;
+  }
+
+  return `
+    <section class="speakers-page">
+      <div class="container">
+        <div class="schedule-header" style="text-align: center; margin-bottom: 3rem;">
+          <span class="schedule-badge">KEYNOTES & LECTURES</span>
+          <h2 class="section-title">Distinguished Speakers</h2>
+          <p class="schedule-subtitle">Eminent academicians, researchers, and industry leaders presenting at AutoCom-26</p>
+        </div>
+        <div class="data-grid speakers-grid">
+          ${speakers.map(s => `
+            <div class="card speaker-card">
+              ${s.image ? `
+                <div class="speaker-avatar-wrap">
+                  <img src="${s.image}" alt="${s.name}" class="speaker-avatar" onerror="this.style.display='none'">
+                </div>
+              ` : ''}
+              <div class="speaker-role">${s.role}</div>
+              <h3 class="speaker-name">${s.name}</h3>
+              ${s.affiliation ? `<p class="affiliation">${s.affiliation}</p>` : ''}
+              ${s.bio ? `<p class="bio">${s.bio}</p>` : ''}
+            </div>
+          `).join('')}
+        </div>
       </div>
-    </div>
-  </section>
-`;
+    </section>
+  `;
+};
 
 export const renderTracks = (tracks) => `
   <section class="tracks">
@@ -713,11 +777,11 @@ export const parseCSVRows = (csvText) => {
 
 export const parseItineraryCSV = (csvText) => {
   if (!csvText || typeof csvText !== 'string') {
-    return { title: 'Conference Itinerary', days: [] };
+    return { title: '(Tentative) Conference Itinerary', days: [] };
   }
 
   const lines = parseCSVRows(csvText);
-  if (lines.length < 2) return { title: 'Conference Itinerary', days: [] };
+  if (lines.length < 2) return { title: '(Tentative) Conference Itinerary', days: [] };
 
   const headers = lines[0].map(h => h.trim().toLowerCase());
   const getIndex = (possibleNames) => {
@@ -828,7 +892,7 @@ export const parseItineraryCSV = (csvText) => {
   ];
 
   return {
-    title: 'Conference Itinerary',
+    title: '(Tentative) Conference Itinerary',
     subtitle: '4th International Conference on Automation & Computation (AutoCom-26)',
     overview: {
       dates: '22–24 October 2026',
@@ -875,7 +939,7 @@ export const renderItinerary = (rawInput) => {
       <div class="container">
         <div class="schedule-header">
           <span class="schedule-badge">CONFERENCE PROGRAM</span>
-          <h2 class="section-title">${data.title || 'Conference Itinerary'}</h2>
+          <h2 class="section-title">${data.title || '(Tentative) Conference Itinerary'}</h2>
           <p class="schedule-subtitle">${data.subtitle || '4th International Conference on Automation & Computation (AutoCom-26)'}</p>
           
           <div class="schedule-meta-grid">
@@ -1194,6 +1258,13 @@ export const renderSchedule = (rawInput) => {
               <span>Physical Mode at Graphic Era Hill University</span>
             </div>
           </div>
+
+          <div class="schedule-switch-banner">
+            <span>Looking for keynotes, inaugural ceremonies, and daily event timeline?</span>
+            <button class="btn btn-sm btn-outline-accent" onclick="window.navigate('itinerary')">
+              🗓️ View (Tentative) Conference Itinerary
+            </button>
+          </div>
         </div>
 
         <!-- Search and Quick Filter Bar -->
@@ -1313,6 +1384,7 @@ export const renderSchedule = (rawInput) => {
 
         <!-- Schedule CTA Buttons -->
         <div class="schedule-cta" style="margin-top: 3.5rem;">
+          <button class="btn btn-primary hero-btn-itinerary" onclick="window.navigate('itinerary')">🗓️ View (Tentative) Conference Itinerary</button>
           <button class="btn btn-primary" onclick="window.navigate('registration')">Proceed to Registration</button>
           <button class="btn btn-outline" onclick="window.navigate('guidelines')">Author Guidelines</button>
           <button class="btn btn-outline" onclick="window.navigate('tracks')">Technical Tracks</button>

@@ -106,17 +106,15 @@ async function renderApp() {
       // RENDERING HERO IMMEDIATELY (no await for speakers here)
       mainContent.innerHTML = renderHero(siteConfig) + renderPartners(siteConfig);
 
-      // Show Coming Soon for speakers on home page
+      // Render speakers from speakers.csv on home page
+      try {
+        const hSpeakersData = await fetchData('speakers', 'csv');
+        mainContent.insertAdjacentHTML('beforeend', renderSpeakers(hSpeakersData));
+      } catch (err) {
+        console.error("Failed to load speakers for home page:", err);
+      }
+
       mainContent.insertAdjacentHTML('beforeend', `
-        <section class="speakers">
-          <div class="container" style="text-align: center; padding: 3rem 0;">
-            <h2 class="section-title">Keynote Speakers</h2>
-            <div class="coming-soon-banner">
-              <h3>Coming Soon</h3>
-              <p>We are currently finalizing our lineup of world-class speakers. Stay tuned for exciting announcements!</p>
-            </div>
-          </div>
-        </section>
         <div class="container">
           <hr style="border: none; border-top: 1px dashed var(--accent); opacity: 0.3; margin: 1rem auto; width: 60%;">
         </div>
@@ -144,21 +142,13 @@ async function renderApp() {
           pageHtml = renderCFP(cfpData);
           break;
         case 'speakers':
-          pageHtml = `
-            <section class="speakers-page">
-              <div class="container" style="text-align: center; padding: 4rem 0;">
-                <h2 class="section-title">Keynote Speakers</h2>
-                <div class="coming-soon-banner" style="max-width: 600px; margin: 0 auto; background: var(--surface); padding: 4rem; border-radius: 1.5rem; border: 1px dashed var(--accent);">
-                  <span style="font-size: 4rem; display: block; margin-bottom: 1.5rem;">🎙️</span>
-                  <h3>Coming Soon</h3>
-                  <p style="color: var(--text-muted); font-size: 1.1rem; margin-top: 1rem;">
-                    We are currently in the process of inviting leading experts and pioneers in the fields of Automation and Computation. 
-                    The full schedule and list of speakers will be announced shortly.
-                  </p>
-                </div>
-              </div>
-            </section>
-          `;
+          try {
+            const spData = await fetchData('speakers', 'csv');
+            pageHtml = renderSpeakers(spData);
+          } catch (e) {
+            console.error("Failed to fetch speakers:", e);
+            pageHtml = renderSpeakers(null);
+          }
           break;
         case 'tracks':
           const tData = await fetchData('tracks');
