@@ -13,7 +13,8 @@
     "branding": {
       "logo_conference": "/images/autocom_logo.png",
       "logo_university": "/images/university_logo.png",
-      "logo_ieee": "/images/up_section.png"
+      "logo_ieee": "/images/up_section.png",
+      "logo_drdo": "/images/drdo_logo.png"
     },
     "about": {
       "heading": "About AutoCom-26",

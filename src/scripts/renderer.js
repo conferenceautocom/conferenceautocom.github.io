@@ -349,17 +349,24 @@ export const renderCommittees = (data) => {
 
 export const renderPartners = (config) => {
   const branding = config.site.branding || {};
-  if (!branding.logo_ieee) return '';
+  if (!branding.logo_ieee && !branding.logo_drdo) return '';
 
   return `
     <section class="partner-strip">
       <div class="container">
-        <h3 class="category-title" style="border-bottom: none; margin-bottom: 0;">Technically Supported By</h3>
         <div class="partner-logos">
-          <div class="partner-item">
-            <img src="${branding.logo_ieee}" alt="IEEE UP Section" class="logo-partner">
-            <p style="margin-top: 1rem; color: var(--text-muted); font-weight: 600;">IEEE Uttar Pradesh Section</p>
-          </div>
+          ${branding.logo_ieee ? `
+            <div class="partner-item">
+              <p style="margin-bottom: 1.25rem; color: var(--text-muted); font-weight: 600; line-height: 1.4;">Technically Co-sponsored by<br><span style="color: var(--primary); font-weight: 700;">IEEE Uttar Pradesh Section</span></p>
+              <img src="${branding.logo_ieee}" alt="IEEE UP Section" class="logo-partner">
+            </div>
+          ` : ''}
+          ${branding.logo_drdo ? `
+            <div class="partner-item">
+              <p style="margin-bottom: 1.25rem; color: var(--text-muted); font-weight: 600; line-height: 1.4;">Financially Supported by<br><span style="color: var(--primary); font-weight: 700;">DRDO (IRDE)</span></p>
+              <img src="${branding.logo_drdo}" alt="DRDO" class="logo-partner">
+            </div>
+          ` : ''}
         </div>
       </div>
     </section>

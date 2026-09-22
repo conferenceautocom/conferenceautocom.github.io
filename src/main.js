@@ -54,6 +54,7 @@ async function renderApp() {
             ${branding.logo_conference ? `<img src="${branding.logo_conference}" alt="AutoCom" class="logo-nav">` : ''}
             ${branding.logo_university ? `<img src="${branding.logo_university}" alt="GEHU" class="logo-nav" style="border-left: 1px solid var(--border); padding-left: 1rem; margin-left: 0.5rem;">` : ''}
             ${branding.logo_ieee ? `<img src="${branding.logo_ieee}" alt="IEEE UP Section" class="logo-nav" style="border-left: 1px solid var(--border); padding-left: 1rem; margin-left: 0.5rem;">` : ''}
+            ${branding.logo_drdo ? `<img src="${branding.logo_drdo}" alt="DRDO" class="logo-nav" style="border-left: 1px solid var(--border); padding-left: 1rem; margin-left: 0.5rem;">` : ''}
           </div>
           <ul class="nav-links" id="nav-links">
             ${siteConfig.navigation.map(nav => `

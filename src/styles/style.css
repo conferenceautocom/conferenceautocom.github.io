@@ -150,14 +150,16 @@ ul {
 
 .nav-links {
     display: flex;
-    gap: 1.5rem;
+    gap: 1.15rem;
+    align-items: center;
 }
 
 .nav-links a {
     font-weight: 500;
-    font-size: 0.9rem;
+    font-size: 0.8rem;
     color: var(--text-muted);
     cursor: pointer;
+    white-space: nowrap;
 }
 
 .nav-links a:hover,
@@ -291,8 +293,8 @@ section {
 }
 
 .hero-actions .btn {
-    font-size: 1.125rem; /* ~18px (+2pt) */
-    padding: 0.85rem 1.75rem;
+    font-size: 0.92rem; /* reduced by 2pt */
+    padding: 0.72rem 1.45rem;
 }
 
 .btn-outline {
@@ -617,10 +619,17 @@ footer h4 {
 .partner-logos {
     display: flex;
     justify-content: center;
-    align-items: center;
-    gap: 4rem;
+    align-items: flex-end;
+    gap: 5rem;
     flex-wrap: wrap;
-    margin-top: 2.5rem;
+    margin-top: 0;
+}
+
+.partner-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
 }
 
 .logo-partner {
