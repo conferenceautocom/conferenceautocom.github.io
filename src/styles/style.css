@@ -2025,12 +2025,28 @@ footer h4 {
     background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%);
     box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);
     border: 1px solid rgba(255, 255, 255, 0.25);
+    color: #ffffff;
 }
 
 .hero-btn-schedule:hover {
     background: linear-gradient(135deg, #1e40af 0%, #1d4ed8 100%);
     box-shadow: 0 6px 20px rgba(37, 99, 235, 0.6);
     transform: translateY(-2px);
+    color: #ffffff;
+}
+
+.hero-btn-template {
+    background: linear-gradient(135deg, #ea580c 0%, #d97706 100%);
+    box-shadow: 0 4px 15px rgba(234, 88, 12, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    color: #ffffff;
+}
+
+.hero-btn-template:hover {
+    background: linear-gradient(135deg, #c2410c 0%, #b45309 100%);
+    box-shadow: 0 6px 20px rgba(234, 88, 12, 0.6);
+    transform: translateY(-2px);
+    color: #ffffff;
 }
 
 /* Schedule Switch Banner */

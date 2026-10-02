@@ -174,6 +174,7 @@ export const renderHero = (config) => `
           <button class="btn btn-primary" onclick="window.navigate('registration')">Register Now</button>
           <button class="btn btn-primary hero-btn-itinerary" onclick="window.navigate('itinerary')">🗓️ (Tentative) Conference Itinerary</button>
           <button class="btn btn-primary hero-btn-schedule" onclick="window.navigate('schedule')">📑 (Tentative) Presentation Schedule Summary</button>
+          <a href="/downloads/AUTOCOM_26_Author_Presentation_Template.pptx" class="btn btn-primary hero-btn-template" download="AUTOCOM_26_Author_Presentation_Template.pptx">📊 Download Presentation Template</a>
         </div>
       </div>
     </div>
@@ -654,9 +655,10 @@ export const renderDownloads = (config) => {
     <section class="downloads-section">
       <div class="container" style="text-align: center; padding: 3rem 0;">
         <h2 class="section-title">Important Downloads</h2>
-        <div class="downloads-grid" style="display: flex; gap: 1rem; justify-content: center; margin-top: 2rem;">
+        <div class="downloads-grid" style="display: flex; gap: 1rem; justify-content: center; margin-top: 2rem; flex-wrap: wrap;">
           ${downloads.brochure ? `<a href="${downloads.brochure}" class="btn btn-primary" target="_blank" rel="noopener noreferrer">Brochure</a>` : ''}
           ${downloads.paperTemplate ? `<a href="${downloads.paperTemplate}" class="btn btn-outline" target="_blank" rel="noopener noreferrer">Paper Template</a>` : ''}
+          ${downloads.presentationTemplate ? `<a href="${downloads.presentationTemplate}" class="btn btn-outline" download>Presentation Template</a>` : ''}
         </div>
       </div>
     </section>

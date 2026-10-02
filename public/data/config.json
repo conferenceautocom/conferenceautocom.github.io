@@ -38,7 +38,8 @@
     },
     "importantDownloads": {
       "brochure": "/downloads/AUTOCOM_26_BROCHURE.pdf",
-      "paperTemplate": "/downloads/paper_template.docx"
+      "paperTemplate": "/downloads/paper_template.docx",
+      "presentationTemplate": "/downloads/AUTOCOM_26_Author_Presentation_Template.pptx"
     }
   },
   "navigation": [
