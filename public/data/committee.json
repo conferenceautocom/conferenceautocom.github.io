@@ -17,6 +17,10 @@
                     "role_name": "Patron(s)",
                     "members": [
                         {
+                            "name": "Prof. (Dr.) Tabassum Naqvi",
+                            "affiliation": "Vice Chancellor, Graphic Era Hill University"
+                        },
+                        {
                             "name": "Prof. (Dr.) S.N. Singh",
                             "affiliation": "Director, IIIT Gwalior"
                         }
@@ -26,8 +30,8 @@
                     "role_name": "General Chair(s)",
                     "members": [
                         {
-                            "name": "Prof. (Dr.) Tabassum Naqvi",
-                            "affiliation": "Vice Chancellor, Graphic Era Hill University"
+                            "name": "Prof. (Dr.) Anupam Singh",
+                            "affiliation": "HOD, CSE, Graphic Era Hill University, Dehradun"
                         }
                     ]
                 }
@@ -43,10 +47,6 @@
                         {
                             "name": "Dr. Vikrant Sharma",
                             "affiliation": "CSE, Graphic Era Hill University, Dehradun"
-                        },
-                        {
-                            "name": "Prof. (Dr.) Anupam Singh",
-                            "affiliation": "HOD, CSE, Graphic Era Hill University, Dehradun"
                         },
                         {
                             "name": "Prof. Dibyahash Bordoloi",
@@ -83,8 +83,8 @@
                     "role_name": "Conference Secretary(s)",
                     "members": [
                         {
-                            "name": "Dr. Teekam Singh",
-                            "affiliation": "Dean Research, Graphic Era Hill University, Dehradun"
+                            "name": "Dr. A. K. Sahoo",
+                            "affiliation": "Graphic Era Hill University, Dehradun"
                         },
                         {
                             "name": "Dr. Akhilesh Tiwari",
