@@ -1124,20 +1124,44 @@ export const parseScheduleCSV = (csvText) => {
 
   // Group rows into days and sessions
   const daysMap = new Map();
+  let currentDayName = '';
+  let currentDateStr = '';
+  let currentTime = '';
+  let currentComment = '';
 
   for (let i = 1; i < lines.length; i++) {
     const r = lines[i];
-    const dayName = (dayIdx !== -1 && r[dayIdx]) ? r[dayIdx].trim() : 'Day 1';
-    const dateStr = (dateIdx !== -1 && r[dateIdx]) ? r[dateIdx].trim() : '';
+    const rawDay = (dayIdx !== -1 && r[dayIdx]) ? r[dayIdx].trim() : '';
+    if (rawDay) {
+      currentDayName = rawDay;
+    }
+    const dayName = currentDayName || 'Day 1';
+
+    const rawDate = (dateIdx !== -1 && r[dateIdx]) ? r[dateIdx].trim() : '';
+    if (rawDate) {
+      currentDateStr = rawDate;
+    }
+    const dateStr = currentDateStr;
+
+    const rawTime = (timeIdx !== -1 && r[timeIdx]) ? r[timeIdx].trim() : '';
+    if (rawTime) {
+      currentTime = rawTime;
+    }
+    const time = currentTime;
+
+    const rawComment = (commentIdx !== -1 && r[commentIdx]) ? r[commentIdx].trim() : '';
+    if (rawComment) {
+      currentComment = rawComment;
+    }
+    const sessionComment = currentComment;
+
     const sessionName = (sessionIdx !== -1 && r[sessionIdx]) ? r[sessionIdx].trim() : '';
     const track = (trackIdx !== -1 && r[trackIdx]) ? r[trackIdx].trim() : '';
     const hall = (hallIdx !== -1 && r[hallIdx]) ? r[hallIdx].trim() : '';
-    const time = (timeIdx !== -1 && r[timeIdx]) ? r[timeIdx].trim() : '';
     const paperId = (pidIdx !== -1 && r[pidIdx]) ? r[pidIdx].trim() : `PAPER-${i}`;
     const paperTitle = (titleIdx !== -1 && r[titleIdx]) ? r[titleIdx].trim() : '';
     const registration = (regIdx !== -1 && r[regIdx]) ? r[regIdx].trim() : '';
-    const receiptLink = (receiptIdx !== -1 && r[receiptIdx]) ? r[receiptIdx].trim() : '';
-    const sessionComment = (commentIdx !== -1 && r[commentIdx]) ? r[commentIdx].trim() : '';
+    const receiptLink = (receiptIdx !== -1 && r[receiptIdx]) ? r[receiptIdx].trim() : '#';
 
     if (!daysMap.has(dayName)) {
       daysMap.set(dayName, {
