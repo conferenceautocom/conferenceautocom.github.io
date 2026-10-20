@@ -1158,8 +1158,10 @@ export const parseScheduleCSV = (csvText) => {
     const sessionName = (sessionIdx !== -1 && r[sessionIdx]) ? r[sessionIdx].trim() : '';
     const track = (trackIdx !== -1 && r[trackIdx]) ? r[trackIdx].trim() : '';
     const hall = (hallIdx !== -1 && r[hallIdx]) ? r[hallIdx].trim() : '';
-    const paperId = (pidIdx !== -1 && r[pidIdx]) ? r[pidIdx].trim() : `PAPER-${i}`;
+    const rawPaperId = (pidIdx !== -1 && r[pidIdx]) ? r[pidIdx].trim() : '';
     const paperTitle = (titleIdx !== -1 && r[titleIdx]) ? r[titleIdx].trim() : '';
+    if (!rawPaperId && !paperTitle) continue;
+    const paperId = rawPaperId || `PAPER-${i}`;
     const registration = (regIdx !== -1 && r[regIdx]) ? r[regIdx].trim() : '';
     const receiptLink = (receiptIdx !== -1 && r[receiptIdx]) ? r[receiptIdx].trim() : '#';
 
