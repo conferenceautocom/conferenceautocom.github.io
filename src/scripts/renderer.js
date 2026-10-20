@@ -1096,6 +1096,18 @@ export const renderItinerary = (rawInput) => {
   `;
 };
 
+export const formatTrackName = (track) => {
+  if (!track) return '';
+  const str = String(track).trim();
+  if (/^\d+$/.test(str)) {
+    return `Track-${str}`;
+  }
+  if (/^track[\s\-_]*(\d+)$/i.test(str)) {
+    return str.replace(/^track[\s\-_]*(\d+)$/i, 'Track-$1');
+  }
+  return str;
+};
+
 export const parseScheduleCSV = (csvText) => {
   if (!csvText || typeof csvText !== 'string') {
     return { title: '(Tentative) Presentation Schedule Summary', days: [] };
@@ -1121,6 +1133,9 @@ export const parseScheduleCSV = (csvText) => {
   const regIdx = getIndex(['registration', 'reg', 'status']);
   const receiptIdx = getIndex(['receipt_link', 'receiptlink', 'receipt', 'receipt_url', 'download_receipt']);
   const commentIdx = getIndex(['session_comment', 'sessioncomment', 'comment', 'session_note', 'note']);
+  const managerIdx = getIndex(['track manager', 'manager', 'contact']);
+  const uploadPptIdx = getIndex(['upload ppt', 'upload_ppt', 'ppt', 'presentation link']);
+  const whatsappIdx = getIndex(['whatsapp link', 'whatsapp', 'wa link', 'wa']);
 
   // Group rows into days and sessions
   const daysMap = new Map();
@@ -1156,7 +1171,8 @@ export const parseScheduleCSV = (csvText) => {
     const sessionComment = currentComment;
 
     const sessionName = (sessionIdx !== -1 && r[sessionIdx]) ? r[sessionIdx].trim() : '';
-    const track = (trackIdx !== -1 && r[trackIdx]) ? r[trackIdx].trim() : '';
+    const rawTrack = (trackIdx !== -1 && r[trackIdx]) ? r[trackIdx].trim() : '';
+    const track = formatTrackName(rawTrack);
     const hall = (hallIdx !== -1 && r[hallIdx]) ? r[hallIdx].trim() : '';
     const rawPaperId = (pidIdx !== -1 && r[pidIdx]) ? r[pidIdx].trim() : '';
     const paperTitle = (titleIdx !== -1 && r[titleIdx]) ? r[titleIdx].trim() : '';
@@ -1164,6 +1180,9 @@ export const parseScheduleCSV = (csvText) => {
     const paperId = rawPaperId || `PAPER-${i}`;
     const registration = (regIdx !== -1 && r[regIdx]) ? r[regIdx].trim() : '';
     const receiptLink = (receiptIdx !== -1 && r[receiptIdx]) ? r[receiptIdx].trim() : '#';
+    const rawTrackManager = (managerIdx !== -1 && r[managerIdx]) ? r[managerIdx].trim() : '';
+    const rawUploadPpt = (uploadPptIdx !== -1 && r[uploadPptIdx]) ? r[uploadPptIdx].trim() : '';
+    const rawWhatsappLink = (whatsappIdx !== -1 && r[whatsappIdx]) ? r[whatsappIdx].trim() : '';
 
     if (!daysMap.has(dayName)) {
       daysMap.set(dayName, {
@@ -1187,6 +1206,9 @@ export const parseScheduleCSV = (csvText) => {
         track: track,
         hall: hall,
         time: time,
+        trackManager: rawTrackManager,
+        uploadPpt: rawUploadPpt,
+        whatsappLink: rawWhatsappLink,
         papers: []
       });
     }
@@ -1194,6 +1216,9 @@ export const parseScheduleCSV = (csvText) => {
     const sessionObj = dayObj.sessionsMap.get(sKey);
     if (!sessionObj.hall && hall) sessionObj.hall = hall;
     if (!sessionObj.time && time) sessionObj.time = time;
+    if (!sessionObj.trackManager && rawTrackManager) sessionObj.trackManager = rawTrackManager;
+    if (!sessionObj.uploadPpt && rawUploadPpt) sessionObj.uploadPpt = rawUploadPpt;
+    if (!sessionObj.whatsappLink && rawWhatsappLink) sessionObj.whatsappLink = rawWhatsappLink;
 
     sessionObj.papers.push({
       paperId: paperId,
@@ -1248,7 +1273,7 @@ export const renderSchedule = (rawInput) => {
       const pid = row.getAttribute('data-pid') || '';
       const title = row.getAttribute('data-title') || '';
       const track = row.getAttribute('data-track') || '';
-      const match = pid.includes(q) || title.includes(q) || track.includes(q);
+      const match = pid.includes(q) || title.includes(q) || track.includes(q) || (q.match(/^\d+$/) && track.includes(`track-${q}`));
 
       row.style.display = match ? 'flex' : 'none';
       if (match) visibleCount++;
@@ -1361,8 +1386,32 @@ export const renderSchedule = (rawInput) => {
                     <div class="session-section-header">
                       <div class="session-section-title">
                         ${session.sessionName ? `<h4>${session.sessionName}</h4>` : ''}
-                        ${session.track ? `<span class="session-track-badge">${session.track}</span>` : ''}
+                        ${session.track ? `<span class="session-track-badge">${formatTrackName(session.track)}</span>` : ''}
                       </div>
+
+                      ${(session.trackManager || session.uploadPpt || session.whatsappLink) ? `
+                        <div class="session-track-actions">
+                          ${session.trackManager ? `
+                            <a href="tel:${session.trackManager.replace(/[^\d+]/g, '')}" class="track-action-pill track-manager-pill" title="Call Track Manager: ${session.trackManager}">
+                              <span class="pill-icon">📞</span>
+                              <span class="pill-text">Track Manager: <strong>${session.trackManager}</strong></span>
+                            </a>
+                          ` : ''}
+                          ${session.uploadPpt ? `
+                            <a href="${session.uploadPpt}" target="_blank" rel="noopener noreferrer" class="track-action-pill track-ppt-pill" title="Upload Presentation PPT">
+                              <span class="pill-icon">📤</span>
+                              <span class="pill-text">Upload PPT</span>
+                            </a>
+                          ` : ''}
+                          ${session.whatsappLink ? `
+                            <a href="${session.whatsappLink}" target="_blank" rel="noopener noreferrer" class="track-action-pill track-wa-pill" title="Join Track WhatsApp Group">
+                              <span class="pill-icon">💬</span>
+                              <span class="pill-text">Join WhatsApp Group</span>
+                            </a>
+                          ` : ''}
+                        </div>
+                      ` : ''}
+
                       <div class="session-meta-tags">
                         ${session.time ? `<span class="meta-tag">⏰ ${session.time}</span>` : ''}
                         ${session.hall ? `<span class="meta-tag">📍 ${session.hall}</span>` : ''}
@@ -1389,7 +1438,7 @@ export const renderSchedule = (rawInput) => {
                             <h5 class="paper-name">${paper.title}</h5>
                             ${(session.track || session.hall) ? `
                               <div class="paper-sub-meta">
-                                ${session.track ? `<span class="sub-track">${session.track}</span>` : ''}
+                                ${session.track ? `<span class="sub-track">${formatTrackName(session.track)}</span>` : ''}
                                 ${session.hall ? `<span class="sub-hall">📍 ${session.hall}</span>` : ''}
                               </div>
                             ` : ''}
