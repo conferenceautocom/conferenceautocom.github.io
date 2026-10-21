@@ -172,8 +172,8 @@ export const renderHero = (config) => `
         ${config.site.mode ? `<p class="hero-mode">Conference Mode: <strong>${config.site.mode}</strong></p>` : ''}
         <div class="hero-actions">
           <button class="btn btn-primary" onclick="window.navigate('registration')">Register Now</button>
-          <button class="btn btn-primary hero-btn-itinerary" onclick="window.navigate('itinerary')">🗓️ (Tentative) Conference Itinerary</button>
-          <button class="btn btn-primary hero-btn-schedule" onclick="window.navigate('schedule')">📑 (Tentative) Presentation Schedule Summary</button>
+          <button class="btn btn-primary hero-btn-itinerary" onclick="window.navigate('itinerary')">🗓️ Conference Itinerary</button>
+          <button class="btn btn-primary hero-btn-schedule" onclick="window.navigate('schedule')">📑 Presentation Schedule</button>
           <a href="/downloads/AUTOCOM_26_Author_Presentation_Template.pptx" class="btn btn-primary hero-btn-template" download="AUTOCOM_26_Author_Presentation_Template.pptx">📊 Download Presentation Template</a>
         </div>
       </div>
@@ -786,11 +786,11 @@ export const parseCSVRows = (csvText) => {
 
 export const parseItineraryCSV = (csvText) => {
   if (!csvText || typeof csvText !== 'string') {
-    return { title: '(Tentative) Conference Itinerary', days: [] };
+    return { title: 'Conference Itinerary', days: [] };
   }
 
   const lines = parseCSVRows(csvText);
-  if (lines.length < 2) return { title: '(Tentative) Conference Itinerary', days: [] };
+  if (lines.length < 2) return { title: 'Conference Itinerary', days: [] };
 
   const headers = lines[0].map(h => h.trim().toLowerCase());
   const getIndex = (possibleNames) => {
@@ -901,7 +901,7 @@ export const parseItineraryCSV = (csvText) => {
   ];
 
   return {
-    title: '(Tentative) Conference Itinerary',
+    title: 'Conference Itinerary',
     subtitle: '4th International Conference on Automation & Computation (AutoCom-26)',
     overview: {
       dates: '22–24 October 2026',
@@ -948,7 +948,7 @@ export const renderItinerary = (rawInput) => {
       <div class="container">
         <div class="schedule-header">
           <span class="schedule-badge">CONFERENCE PROGRAM</span>
-          <h2 class="section-title">${data.title || '(Tentative) Conference Itinerary'}</h2>
+          <h2 class="section-title">${data.title || 'Conference Itinerary'}</h2>
           <p class="schedule-subtitle">${data.subtitle || '4th International Conference on Automation & Computation (AutoCom-26)'}</p>
           
           <div class="schedule-meta-grid">
@@ -985,7 +985,7 @@ export const renderItinerary = (rawInput) => {
           <div class="schedule-switch-banner">
             <span>Looking for day-wise accepted papers and presentation slots?</span>
             <button class="btn btn-sm btn-outline-accent" onclick="window.navigate('schedule')">
-              📑 View (Tentative) Presentation Schedule Summary
+              📑 View Presentation Schedule
             </button>
           </div>
         </div>
@@ -1087,7 +1087,7 @@ export const renderItinerary = (rawInput) => {
 
         <!-- Schedule CTA Buttons -->
         <div class="schedule-cta">
-          <button class="btn btn-primary" onclick="window.navigate('schedule')">View (Tentative) Presentation Schedule Summary</button>
+          <button class="btn btn-primary" onclick="window.navigate('schedule')">View Presentation Schedule</button>
           <button class="btn btn-outline" onclick="window.navigate('registration')">Proceed to Registration</button>
           <button class="btn btn-outline" onclick="window.navigate('tracks')">View Technical Tracks</button>
         </div>
@@ -1110,11 +1110,11 @@ export const formatTrackName = (track) => {
 
 export const parseScheduleCSV = (csvText) => {
   if (!csvText || typeof csvText !== 'string') {
-    return { title: '(Tentative) Presentation Schedule Summary', days: [] };
+    return { title: 'Presentation Schedule', days: [] };
   }
 
   const lines = parseCSVRows(csvText);
-  if (lines.length < 2) return { title: '(Tentative) Presentation Schedule Summary', days: [] };
+  if (lines.length < 2) return { title: 'Presentation Schedule', days: [] };
 
   const headers = lines[0].map(h => h.trim().toLowerCase());
   
@@ -1237,7 +1237,7 @@ export const parseScheduleCSV = (csvText) => {
   }));
 
   return {
-    title: '(Tentative) Presentation Schedule Summary',
+    title: 'Presentation Schedule',
     subtitle: 'Day-wise Accepted Paper IDs and Presentation Titles',
     days: days
   };
@@ -1310,7 +1310,7 @@ export const renderSchedule = (rawInput) => {
     <section class="schedule-page presentation-summary-page">
       <div class="container">
         <div class="schedule-header">
-          <h2 class="section-title">${data.title || '(Tentative) Presentation Schedule Summary'}</h2>
+          <h2 class="section-title">${data.title || 'Presentation Schedule'}</h2>
           
           <div class="presentation-info-banner">
             <div class="info-pill">
@@ -1322,7 +1322,7 @@ export const renderSchedule = (rawInput) => {
           <div class="schedule-switch-banner">
             <span>Looking for keynotes, inaugural ceremonies, and daily event timeline?</span>
             <button class="btn btn-sm btn-outline-accent" onclick="window.navigate('itinerary')">
-              🗓️ View (Tentative) Conference Itinerary
+              🗓️ View Conference Itinerary
             </button>
           </div>
         </div>
@@ -1436,12 +1436,6 @@ export const renderSchedule = (rawInput) => {
                           </div>
                           <div class="col-title">
                             <h5 class="paper-name">${paper.title}</h5>
-                            ${(session.track || session.hall) ? `
-                              <div class="paper-sub-meta">
-                                ${session.track ? `<span class="sub-track">${formatTrackName(session.track)}</span>` : ''}
-                                ${session.hall ? `<span class="sub-hall">📍 ${session.hall}</span>` : ''}
-                              </div>
-                            ` : ''}
                           </div>
                           <div class="col-reg">
                             ${(paper.registration || '').toLowerCase() === 'verified' ? `
@@ -1468,7 +1462,7 @@ export const renderSchedule = (rawInput) => {
 
         <!-- Schedule CTA Buttons -->
         <div class="schedule-cta" style="margin-top: 3.5rem;">
-          <button class="btn btn-primary hero-btn-itinerary" onclick="window.navigate('itinerary')">🗓️ View (Tentative) Conference Itinerary</button>
+          <button class="btn btn-primary hero-btn-itinerary" onclick="window.navigate('itinerary')">🗓️ View Conference Itinerary</button>
           <button class="btn btn-primary" onclick="window.navigate('registration')">Proceed to Registration</button>
           <button class="btn btn-outline" onclick="window.navigate('guidelines')">Author Guidelines</button>
           <button class="btn btn-outline" onclick="window.navigate('tracks')">Technical Tracks</button>
