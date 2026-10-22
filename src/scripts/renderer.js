@@ -168,10 +168,12 @@ export const renderHero = (config) => `
         <h1>${config.site.fullName}</h1>
         <p class="tagline">${config.site.tagline}</p>
         <p class="dates">${config.site.dates}</p>
-        ${config.site.articleSubmissionDeadline ? `<p class="deadline">Article Submission: ${config.site.articleSubmissionDeadline}</p>` : ''}
+        <div class="hero-deadlines">
+          ${config.site.articleSubmissionDeadline ? `<p class="deadline">Article Submission: ${config.site.articleSubmissionDeadline}</p>` : ''}
+          ${config.site.registrationDeadline ? `<p class="deadline">Registration: ${config.site.registrationDeadline}</p>` : '<p class="deadline">Registration: Closed</p>'}
+        </div>
         ${config.site.mode ? `<p class="hero-mode">Conference Mode: <strong>${config.site.mode}</strong></p>` : ''}
         <div class="hero-actions">
-          <button class="btn btn-primary" onclick="window.navigate('registration')">Register Now</button>
           <button class="btn btn-primary hero-btn-itinerary" onclick="window.navigate('itinerary')">🗓️ Conference Itinerary</button>
           <button class="btn btn-primary hero-btn-schedule" onclick="window.navigate('schedule')">📑 Presentation Schedule</button>
           <a href="/downloads/AUTOCOM_26_Author_Presentation_Template.pptx" class="btn btn-primary hero-btn-template" download="AUTOCOM_26_Author_Presentation_Template.pptx">📊 Download Presentation Template</a>
@@ -350,7 +352,7 @@ export const renderCommittees = (data) => {
 
 export const renderPartners = (config) => {
   const branding = config.site.branding || {};
-  if (!branding.logo_ieee && !branding.logo_drdo) return '';
+  if (!branding.logo_ieee && !branding.logo_drdo && !branding.logo_serb) return '';
 
   return `
     <section class="partner-strip">
@@ -366,6 +368,12 @@ export const renderPartners = (config) => {
             <div class="partner-item">
               <p style="margin-bottom: 1.25rem; color: var(--text-muted); font-weight: 600; line-height: 1.4;">Financially Supported by<br><span style="color: var(--primary); font-weight: 700;">DRDO (IRDE)</span></p>
               <img src="${branding.logo_drdo}" alt="DRDO" class="logo-partner">
+            </div>
+          ` : ''}
+          ${branding.logo_serb ? `
+            <div class="partner-item">
+              <p style="margin-bottom: 1.25rem; color: var(--text-muted); font-weight: 600; line-height: 1.4;">Financially Supported by<br><span style="color: var(--primary); font-weight: 700;">SERB</span></p>
+              <img src="${branding.logo_serb}" alt="SERB" class="logo-partner">
             </div>
           ` : ''}
         </div>
@@ -1136,6 +1144,15 @@ export const parseScheduleCSV = (csvText) => {
   const managerIdx = getIndex(['track manager', 'manager', 'contact']);
   const uploadPptIdx = getIndex(['upload ppt', 'upload_ppt', 'ppt', 'presentation link']);
   const whatsappIdx = getIndex(['whatsapp link', 'whatsapp', 'wa link', 'wa']);
+  const chairIdx = headers.findIndex(h => h === 'session chair' || h === 'sessionchair' || (h.includes('chair') && !h.includes('co')));
+  const coChairIdx = headers.findIndex(h => h === 'co chair' || h === 'cochair' || h === 'co-chair' || h.includes('co chair') || h.includes('co-chair'));
+  const authorNameIdx = headers.findIndex(h => h === 'author name' || h === 'author' || h === 'authors' || (h.includes('author') && !h.includes('affiliation')));
+  const authorAffIdx = headers.findIndex(h => h === 'author affiliation' || h === 'affiliation' || h.includes('affiliation'));
+
+  const cleanChairText = (val) => {
+    if (!val) return '';
+    return val.replace(/\r?\n+/g, ' ').replace(/\s+/g, ' ').trim();
+  };
 
   // Group rows into days and sessions
   const daysMap = new Map();
@@ -1183,6 +1200,10 @@ export const parseScheduleCSV = (csvText) => {
     const rawTrackManager = (managerIdx !== -1 && r[managerIdx]) ? r[managerIdx].trim() : '';
     const rawUploadPpt = (uploadPptIdx !== -1 && r[uploadPptIdx]) ? r[uploadPptIdx].trim() : '';
     const rawWhatsappLink = (whatsappIdx !== -1 && r[whatsappIdx]) ? r[whatsappIdx].trim() : '';
+    const rawSessionChair = (chairIdx !== -1 && r[chairIdx]) ? cleanChairText(r[chairIdx]) : '';
+    const rawCoChair = (coChairIdx !== -1 && r[coChairIdx]) ? cleanChairText(r[coChairIdx]) : '';
+    const rawAuthorName = (authorNameIdx !== -1 && r[authorNameIdx]) ? cleanChairText(r[authorNameIdx]) : '';
+    const rawAuthorAff = (authorAffIdx !== -1 && r[authorAffIdx]) ? cleanChairText(r[authorAffIdx]) : '';
 
     if (!daysMap.has(dayName)) {
       daysMap.set(dayName, {
@@ -1209,6 +1230,8 @@ export const parseScheduleCSV = (csvText) => {
         trackManager: rawTrackManager,
         uploadPpt: rawUploadPpt,
         whatsappLink: rawWhatsappLink,
+        sessionChair: rawSessionChair,
+        coChair: rawCoChair,
         papers: []
       });
     }
@@ -1219,12 +1242,16 @@ export const parseScheduleCSV = (csvText) => {
     if (!sessionObj.trackManager && rawTrackManager) sessionObj.trackManager = rawTrackManager;
     if (!sessionObj.uploadPpt && rawUploadPpt) sessionObj.uploadPpt = rawUploadPpt;
     if (!sessionObj.whatsappLink && rawWhatsappLink) sessionObj.whatsappLink = rawWhatsappLink;
+    if (!sessionObj.sessionChair && rawSessionChair) sessionObj.sessionChair = rawSessionChair;
+    if (!sessionObj.coChair && rawCoChair) sessionObj.coChair = rawCoChair;
 
     sessionObj.papers.push({
       paperId: paperId,
       title: paperTitle,
       registration: registration,
-      receiptLink: receiptLink
+      receiptLink: receiptLink,
+      authorName: rawAuthorName,
+      authorAffiliation: rawAuthorAff
     });
   }
 
@@ -1273,7 +1300,9 @@ export const renderSchedule = (rawInput) => {
       const pid = row.getAttribute('data-pid') || '';
       const title = row.getAttribute('data-title') || '';
       const track = row.getAttribute('data-track') || '';
-      const match = pid.includes(q) || title.includes(q) || track.includes(q) || (q.match(/^\d+$/) && track.includes(`track-${q}`));
+      const author = row.getAttribute('data-author') || '';
+      const aff = row.getAttribute('data-aff') || '';
+      const match = pid.includes(q) || title.includes(q) || track.includes(q) || author.includes(q) || aff.includes(q) || (q.match(/^\d+$/) && track.includes(`track-${q}`));
 
       row.style.display = match ? 'flex' : 'none';
       if (match) visibleCount++;
@@ -1335,7 +1364,7 @@ export const renderSchedule = (rawInput) => {
               type="text" 
               id="paper-search-input" 
               class="paper-search-input" 
-              placeholder="Search by Paper ID (e.g. 91, 104) or Paper Title..." 
+              placeholder="Search by Paper ID, Title, Author, or Affiliation..." 
               oninput="window.filterPapers(this.value)"
             />
             <button class="clear-search-btn" onclick="document.getElementById('paper-search-input').value=''; window.filterPapers('');">Clear</button>
@@ -1382,40 +1411,61 @@ export const renderSchedule = (rawInput) => {
 
               ${(d.sessions || []).map(session => `
                 <div class="paper-session-block">
-                  ${(session.sessionName || session.track || session.hall) ? `
+                  ${(session.sessionName || session.track || session.hall || session.sessionChair || session.coChair) ? `
                     <div class="session-section-header">
-                      <div class="session-section-title">
-                        ${session.sessionName ? `<h4>${session.sessionName}</h4>` : ''}
-                        ${session.track ? `<span class="session-track-badge">${formatTrackName(session.track)}</span>` : ''}
+                      <div class="session-header-top">
+                        <div class="session-section-title">
+                          ${session.sessionName ? `<h4>${session.sessionName}</h4>` : ''}
+                          ${session.track ? `<span class="session-track-badge">${formatTrackName(session.track)}</span>` : ''}
+                        </div>
+
+                        ${(session.trackManager || session.uploadPpt || session.whatsappLink) ? `
+                          <div class="session-track-actions">
+                            ${session.trackManager ? `
+                              <a href="tel:${session.trackManager.replace(/[^\d+]/g, '')}" class="track-action-pill track-manager-pill" title="Call Track Manager: ${session.trackManager}">
+                                <span class="pill-icon">📞</span>
+                                <span class="pill-text">Track Manager: <strong>${session.trackManager}</strong></span>
+                              </a>
+                            ` : ''}
+                            ${session.uploadPpt ? `
+                              <a href="${session.uploadPpt}" target="_blank" rel="noopener noreferrer" class="track-action-pill track-ppt-pill" title="Upload Presentation PPT">
+                                <span class="pill-icon">📤</span>
+                                <span class="pill-text">Upload PPT</span>
+                              </a>
+                            ` : ''}
+                            ${session.whatsappLink ? `
+                              <a href="${session.whatsappLink}" target="_blank" rel="noopener noreferrer" class="track-action-pill track-wa-pill" title="Join Track WhatsApp Group">
+                                <span class="pill-icon">💬</span>
+                                <span class="pill-text">Join WhatsApp Group</span>
+                              </a>
+                            ` : ''}
+                          </div>
+                        ` : ''}
+
+                        <div class="session-meta-tags">
+                          ${session.time ? `<span class="meta-tag">⏰ ${session.time}</span>` : ''}
+                          ${session.hall ? `<span class="meta-tag">📍 ${session.hall}</span>` : ''}
+                        </div>
                       </div>
 
-                      ${(session.trackManager || session.uploadPpt || session.whatsappLink) ? `
-                        <div class="session-track-actions">
-                          ${session.trackManager ? `
-                            <a href="tel:${session.trackManager.replace(/[^\d+]/g, '')}" class="track-action-pill track-manager-pill" title="Call Track Manager: ${session.trackManager}">
-                              <span class="pill-icon">📞</span>
-                              <span class="pill-text">Track Manager: <strong>${session.trackManager}</strong></span>
-                            </a>
+                      ${(session.sessionChair || session.coChair) ? `
+                        <div class="session-chairs-row">
+                          ${session.sessionChair ? `
+                            <div class="session-chair-pill">
+                              <span class="chair-icon">🎙️</span>
+                              <span class="chair-label">Session Chair:</span>
+                              <span class="chair-name">${session.sessionChair}</span>
+                            </div>
                           ` : ''}
-                          ${session.uploadPpt ? `
-                            <a href="${session.uploadPpt}" target="_blank" rel="noopener noreferrer" class="track-action-pill track-ppt-pill" title="Upload Presentation PPT">
-                              <span class="pill-icon">📤</span>
-                              <span class="pill-text">Upload PPT</span>
-                            </a>
-                          ` : ''}
-                          ${session.whatsappLink ? `
-                            <a href="${session.whatsappLink}" target="_blank" rel="noopener noreferrer" class="track-action-pill track-wa-pill" title="Join Track WhatsApp Group">
-                              <span class="pill-icon">💬</span>
-                              <span class="pill-text">Join WhatsApp Group</span>
-                            </a>
+                          ${session.coChair ? `
+                            <div class="session-chair-pill">
+                              <span class="chair-icon">👥</span>
+                              <span class="chair-label">Co-Chair:</span>
+                              <span class="chair-name">${session.coChair}</span>
+                            </div>
                           ` : ''}
                         </div>
                       ` : ''}
-
-                      <div class="session-meta-tags">
-                        ${session.time ? `<span class="meta-tag">⏰ ${session.time}</span>` : ''}
-                        ${session.hall ? `<span class="meta-tag">📍 ${session.hall}</span>` : ''}
-                      </div>
                     </div>
                   ` : ''}
 
@@ -1430,12 +1480,21 @@ export const renderSchedule = (rawInput) => {
                         <div class="paper-row-item" 
                              data-pid="${(paper.paperId || '').toLowerCase()}" 
                              data-title="${(paper.title || '').toLowerCase()}" 
+                             data-author="${(paper.authorName || '').toLowerCase()}" 
+                             data-aff="${(paper.authorAffiliation || '').toLowerCase()}" 
                              data-track="${(session.track || '').toLowerCase()}">
                           <div class="col-pid">
                             <span class="paper-id-badge">#${paper.paperId}</span>
                           </div>
                           <div class="col-title">
                             <h5 class="paper-name">${paper.title}</h5>
+                            ${(paper.authorName || paper.authorAffiliation) ? `
+                              <div class="paper-author-meta">
+                                ${paper.authorName ? `<span class="paper-author-name">👤 ${paper.authorName}</span>` : ''}
+                                ${(paper.authorName && paper.authorAffiliation) ? `<span class="author-sep">•</span>` : ''}
+                                ${paper.authorAffiliation ? `<span class="paper-author-affiliation">🏛️ ${paper.authorAffiliation}</span>` : ''}
+                              </div>
+                            ` : ''}
                           </div>
                           <div class="col-reg">
                             ${(paper.registration || '').toLowerCase() === 'verified' ? `

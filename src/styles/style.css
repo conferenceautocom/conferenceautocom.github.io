@@ -133,6 +133,10 @@ ul {
     align-items: center;
 }
 
+.glass-nav .container {
+    max-width: 1440px;
+}
+
 .nav-content {
     display: flex;
     justify-content: space-between;
@@ -270,6 +274,18 @@ section {
     font-weight: 600;
     margin-bottom: 0.5rem;
     display: block;
+}
+
+.hero-deadlines {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 2rem;
+}
+
+.hero-deadlines .deadline {
+    margin-bottom: 0;
 }
 
 .deadline {
@@ -595,14 +611,29 @@ footer h4 {
 }
 
 /* Logos & Branding */
+.nav-left {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
 .nav-logos {
     display: flex;
     align-items: center;
-    gap: 1.5rem;
+    gap: 1.25rem;
+}
+
+.nav-separator {
+    width: 1.5px;
+    height: 32px;
+    background: var(--border);
+    margin-left: 1.5rem;
+    margin-right: 1.75rem;
+    flex-shrink: 0;
 }
 
 .logo-nav {
-    height: 50px;
+    height: 48px;
     width: auto;
     object-fit: contain;
 }
@@ -1035,6 +1066,10 @@ footer h4 {
 
     /* Adjust logo visibility for mobile space */
     .nav-logos .logo-nav:not(:first-child) {
+        display: none;
+    }
+
+    .nav-separator {
         display: none;
     }
 }
@@ -2237,13 +2272,59 @@ footer h4 {
 
 .session-section-header {
     background: var(--surface);
-    padding: 1.2rem 1.5rem;
+    padding: 1rem 1.5rem 1.15rem;
     border-bottom: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+}
+
+.session-header-top {
     display: flex;
     justify-content: space-between;
     align-items: center;
     flex-wrap: wrap;
-    gap: 1rem;
+    gap: 0.75rem;
+    width: 100%;
+}
+
+.session-chairs-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.65rem 1.25rem;
+    padding-top: 0.75rem;
+    border-top: 1px dashed #cbd5e1;
+    width: 100%;
+}
+
+.session-chair-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 0.84rem;
+    background: #ffffff;
+    padding: 0.35rem 0.85rem;
+    border-radius: 99px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    line-height: 1.35;
+}
+
+.session-chair-pill .chair-icon {
+    font-size: 0.92rem;
+    line-height: 1;
+}
+
+.session-chair-pill .chair-label {
+    font-weight: 700;
+    color: var(--primary);
+    white-space: nowrap;
+}
+
+.session-chair-pill .chair-name {
+    font-weight: 500;
+    color: #475569;
 }
 
 .session-section-title h4 {
@@ -2378,7 +2459,7 @@ footer h4 {
 .paper-row-item {
     display: flex;
     align-items: center;
-    padding: 0.3rem 1.25rem;
+    padding: 0.55rem 1.25rem;
     border-bottom: 1px solid #f1f5f9;
     transition: background-color 0.15s ease;
 }
@@ -2463,11 +2544,42 @@ footer h4 {
 }
 
 .paper-name {
-    font-size: 0.775rem;
-    font-weight: 400;
-    color: #1e293b;
-    line-height: 1.35;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #0f172a;
+    line-height: 1.4;
     margin: 0;
+}
+
+.paper-author-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    flex-wrap: wrap;
+    font-size: 0.74rem;
+    color: #475569;
+    margin-top: 0.2rem;
+    line-height: 1.35;
+}
+
+.paper-author-name {
+    font-weight: 600;
+    color: #334155;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.paper-author-affiliation {
+    color: #64748b;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.author-sep {
+    color: #cbd5e1;
+    font-size: 0.7rem;
 }
 
 .paper-sub-meta {

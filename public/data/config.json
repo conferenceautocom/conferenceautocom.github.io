@@ -6,6 +6,7 @@
     "location": "GRAPHIC ERA HILL UNIVERSITY, DEHRADUN, INDIA.",
     "dates": "October 22-24, 2026",
     "articleSubmissionDeadline": "Closed",
+    "registrationDeadline": "Closed",
     "mode": "Physical",
     "ieeeRecordNumber": "69275",
     "tagline": "Connect. Ideate. Automate.",
@@ -14,7 +15,8 @@
       "logo_conference": "/images/autocom_logo.png",
       "logo_university": "/images/university_logo.png",
       "logo_ieee": "/images/up_section.png",
-      "logo_drdo": "/images/drdo_logo.png"
+      "logo_drdo": "/images/drdo_logo.png",
+      "logo_serb": "/images/serb_logo.png"
     },
     "about": {
       "heading": "About AutoCom-26",

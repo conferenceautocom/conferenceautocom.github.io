@@ -50,11 +50,15 @@ async function renderApp() {
     navHtml = `
       <nav class="glass-nav">
         <div class="container nav-content">
-          <div class="nav-logos" onclick="navigate('home')" style="cursor: pointer;">
-            ${branding.logo_conference ? `<img src="${branding.logo_conference}" alt="AutoCom" class="logo-nav">` : ''}
-            ${branding.logo_university ? `<img src="${branding.logo_university}" alt="GEHU" class="logo-nav" style="border-left: 1px solid var(--border); padding-left: 1rem; margin-left: 0.5rem;">` : ''}
-            ${branding.logo_ieee ? `<img src="${branding.logo_ieee}" alt="IEEE UP Section" class="logo-nav" style="border-left: 1px solid var(--border); padding-left: 1rem; margin-left: 0.5rem;">` : ''}
-            ${branding.logo_drdo ? `<img src="${branding.logo_drdo}" alt="DRDO" class="logo-nav" style="border-left: 1px solid var(--border); padding-left: 1rem; margin-left: 0.5rem;">` : ''}
+          <div class="nav-left">
+            <div class="nav-logos" onclick="navigate('home')" style="cursor: pointer;">
+              ${branding.logo_conference ? `<img src="${branding.logo_conference}" alt="AutoCom" class="logo-nav">` : ''}
+              ${branding.logo_university ? `<img src="${branding.logo_university}" alt="GEHU" class="logo-nav" style="border-left: 1px solid var(--border); padding-left: 1rem; margin-left: 0.5rem;">` : ''}
+              ${branding.logo_ieee ? `<img src="${branding.logo_ieee}" alt="IEEE UP Section" class="logo-nav" style="border-left: 1px solid var(--border); padding-left: 1rem; margin-left: 0.5rem;">` : ''}
+              ${branding.logo_drdo ? `<img src="${branding.logo_drdo}" alt="DRDO" class="logo-nav" style="border-left: 1px solid var(--border); padding-left: 1rem; margin-left: 0.5rem;">` : ''}
+              ${branding.logo_serb ? `<img src="${branding.logo_serb}" alt="SERB" class="logo-nav" style="border-left: 1px solid var(--border); padding-left: 1rem; margin-left: 0.5rem;">` : ''}
+            </div>
+            <div class="nav-separator" aria-hidden="true"></div>
           </div>
           <ul class="nav-links" id="nav-links">
             ${siteConfig.navigation.map(nav => `
