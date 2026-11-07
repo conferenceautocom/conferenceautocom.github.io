@@ -1148,6 +1148,7 @@ export const parseScheduleCSV = (csvText) => {
   const coChairIdx = headers.findIndex(h => h === 'co chair' || h === 'cochair' || h === 'co-chair' || h.includes('co chair') || h.includes('co-chair'));
   const authorNameIdx = headers.findIndex(h => h === 'author name' || h === 'author' || h === 'authors' || (h.includes('author') && !h.includes('affiliation')));
   const authorAffIdx = headers.findIndex(h => h === 'author affiliation' || h === 'affiliation' || h.includes('affiliation'));
+  const presentedIdx = headers.findIndex(h => h === 'presented' || h.includes('presented') || h === 'is_presented' || h === 'presentation');
 
   const cleanChairText = (val) => {
     if (!val) return '';
@@ -1204,6 +1205,8 @@ export const parseScheduleCSV = (csvText) => {
     const rawCoChair = (coChairIdx !== -1 && r[coChairIdx]) ? cleanChairText(r[coChairIdx]) : '';
     const rawAuthorName = (authorNameIdx !== -1 && r[authorNameIdx]) ? cleanChairText(r[authorNameIdx]) : '';
     const rawAuthorAff = (authorAffIdx !== -1 && r[authorAffIdx]) ? cleanChairText(r[authorAffIdx]) : '';
+    const rawPresented = (presentedIdx !== -1 && r[presentedIdx]) ? r[presentedIdx].trim() : 'yes';
+    const isNotPresented = ['no', 'not presented', 'not-presented', 'absent', 'false', '0', 'n'].includes(rawPresented.toLowerCase().trim());
 
     if (!daysMap.has(dayName)) {
       daysMap.set(dayName, {
@@ -1251,7 +1254,9 @@ export const parseScheduleCSV = (csvText) => {
       registration: registration,
       receiptLink: receiptLink,
       authorName: rawAuthorName,
-      authorAffiliation: rawAuthorAff
+      authorAffiliation: rawAuthorAff,
+      presented: rawPresented,
+      isNotPresented: isNotPresented
     });
   }
 
@@ -1302,7 +1307,15 @@ export const renderSchedule = (rawInput) => {
       const track = row.getAttribute('data-track') || '';
       const author = row.getAttribute('data-author') || '';
       const aff = row.getAttribute('data-aff') || '';
-      const match = pid.includes(q) || title.includes(q) || track.includes(q) || author.includes(q) || aff.includes(q) || (q.match(/^\d+$/) && track.includes(`track-${q}`));
+      const presented = row.getAttribute('data-presented') || '';
+      const match = pid.includes(q) || 
+                    title.includes(q) || 
+                    track.includes(q) || 
+                    author.includes(q) || 
+                    aff.includes(q) || 
+                    (q.match(/^\d+$/) && track.includes(`track-${q}`)) ||
+                    ((q.includes('not presented') || q.includes('absent')) && presented === 'no') ||
+                    (q === 'presented' && presented === 'yes');
 
       row.style.display = match ? 'flex' : 'none';
       if (match) visibleCount++;
@@ -1473,21 +1486,27 @@ export const renderSchedule = (rawInput) => {
                     <div class="papers-table-header">
                       <span class="col-pid">Paper ID</span>
                       <span class="col-title">Paper Title</span>
-                      <span class="col-reg">Registration</span>
+                      <span class="col-reg">Registration / Status</span>
                     </div>
                     <div class="papers-rows-list">
-                      ${(session.papers || []).map((paper, pIdx) => `
-                        <div class="paper-row-item" 
+                      ${(session.papers || []).map((paper, pIdx) => {
+                        const isNotPres = paper.isNotPresented || (paper.presented && ['no', 'not presented', 'not-presented', 'absent', 'false', '0', 'n'].includes(paper.presented.toLowerCase().trim()));
+                        return `
+                        <div class="paper-row-item ${isNotPres ? 'paper-not-presented' : ''}" 
                              data-pid="${(paper.paperId || '').toLowerCase()}" 
                              data-title="${(paper.title || '').toLowerCase()}" 
                              data-author="${(paper.authorName || '').toLowerCase()}" 
                              data-aff="${(paper.authorAffiliation || '').toLowerCase()}" 
-                             data-track="${(session.track || '').toLowerCase()}">
+                             data-track="${(session.track || '').toLowerCase()}"
+                             data-presented="${isNotPres ? 'no' : 'yes'}">
                           <div class="col-pid">
-                            <span class="paper-id-badge">#${paper.paperId}</span>
+                            <span class="paper-id-badge ${isNotPres ? 'badge-pid-not-presented' : ''}">#${paper.paperId}</span>
                           </div>
                           <div class="col-title">
-                            <h5 class="paper-name">${paper.title}</h5>
+                            <div class="paper-title-wrapper">
+                              <h5 class="paper-name ${isNotPres ? 'paper-name-not-presented' : ''}">${paper.title}</h5>
+                              ${isNotPres ? `<span class="inline-label-not-presented">Not Presented</span>` : ''}
+                            </div>
                             ${(paper.authorName || paper.authorAffiliation) ? `
                               <div class="paper-author-meta">
                                 ${paper.authorName ? `<span class="paper-author-name">👤 ${paper.authorName}</span>` : ''}
@@ -1497,7 +1516,17 @@ export const renderSchedule = (rawInput) => {
                             ` : ''}
                           </div>
                           <div class="col-reg">
-                            ${(paper.registration || '').toLowerCase() === 'verified' ? `
+                            ${isNotPres ? `
+                              <span class="reg-badge reg-not-presented">Not Presented</span>
+                              ${paper.receiptLink && paper.receiptLink !== '#' ? `
+                                <a href="${paper.receiptLink}" 
+                                   class="receipt-download-link" 
+                                   target="_blank" rel="noopener noreferrer" 
+                                   download>
+                                  Download receipt
+                                </a>
+                              ` : ''}
+                            ` : ((paper.registration || '').toLowerCase() === 'verified' ? `
                               <span class="reg-badge reg-verified">Verified</span>
                               <a href="${paper.receiptLink && paper.receiptLink !== '#' ? paper.receiptLink : '#'}" 
                                  class="receipt-download-link" 
@@ -1507,10 +1536,10 @@ export const renderSchedule = (rawInput) => {
                               </a>
                             ` : `
                               <span class="reg-empty">—</span>
-                            `}
+                            `)}
                           </div>
                         </div>
-                      `).join('')}
+                      `;}).join('')}
                     </div>
                   </div>
                 </div>

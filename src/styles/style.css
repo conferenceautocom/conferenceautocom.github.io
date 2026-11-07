@@ -2509,6 +2509,58 @@ footer h4 {
     border: 1px solid #a7f3d0;
 }
 
+.reg-not-presented {
+    background: #fee2e2;
+    color: #b91c1c;
+    border: 1px solid #f87171;
+    font-weight: 700;
+}
+
+/* Not Presented Row Highlight */
+.paper-row-item.paper-not-presented {
+    background-color: #fff1f2;
+    border-left: 4px solid #ef4444;
+    border-bottom: 1px solid #fee2e2;
+}
+
+.paper-row-item.paper-not-presented:hover {
+    background-color: #ffe4e6;
+}
+
+.paper-id-badge.badge-pid-not-presented {
+    background: #dc2626;
+    color: #ffffff;
+    box-shadow: 0 1px 3px rgba(220, 38, 38, 0.4);
+}
+
+.paper-title-wrapper {
+    display: flex;
+    align-items: baseline;
+    gap: 0.55rem;
+    flex-wrap: wrap;
+}
+
+.paper-name-not-presented {
+    color: #991b1b;
+}
+
+.inline-label-not-presented {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    background: #fee2e2;
+    color: #b91c1c;
+    border: 1px solid #fca5a5;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 0.12rem 0.5rem;
+    border-radius: 999px;
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
 .receipt-download-link {
     font-size: 0.68rem;
     color: var(--accent);
