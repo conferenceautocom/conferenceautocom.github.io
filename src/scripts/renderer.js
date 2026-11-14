@@ -159,7 +159,9 @@ export const renderGuidelines = (data) => {
   `;
 };
 
-export const renderHero = (config) => `
+export const renderHero = (config) => {
+  const certsLink = config.site?.importantDownloads?.certificates || '#';
+  return `
   <section class="hero">
     <div class="container">
       <div class="hero-content">
@@ -177,11 +179,13 @@ export const renderHero = (config) => `
           <button class="btn btn-primary hero-btn-itinerary" onclick="window.navigate('itinerary')">🗓️ Conference Itinerary</button>
           <button class="btn btn-primary hero-btn-schedule" onclick="window.navigate('schedule')">📑 Presentation Schedule</button>
           <a href="/downloads/AUTOCOM_26_Author_Presentation_Template.pptx" class="btn btn-primary hero-btn-template" download="AUTOCOM_26_Author_Presentation_Template.pptx">📊 Download Presentation Template</a>
+          <a href="${certsLink}" class="btn btn-primary hero-btn-certificates" ${certsLink && certsLink !== '#' ? 'target="_blank" rel="noopener noreferrer"' : 'onclick="if(this.getAttribute(\'href\')===\'#\'){alert(\'Certificate downloads will be available soon.\'); return false;}"'}>📜 Download Certificates</a>
         </div>
       </div>
     </div>
   </section>
 `;
+};
 
 export const parseSpeakersCSV = (csvText) => {
   if (!csvText || typeof csvText !== 'string') return [];
@@ -667,6 +671,7 @@ export const renderDownloads = (config) => {
           ${downloads.brochure ? `<a href="${downloads.brochure}" class="btn btn-primary" target="_blank" rel="noopener noreferrer">Brochure</a>` : ''}
           ${downloads.paperTemplate ? `<a href="${downloads.paperTemplate}" class="btn btn-outline" target="_blank" rel="noopener noreferrer">Paper Template</a>` : ''}
           ${downloads.presentationTemplate ? `<a href="${downloads.presentationTemplate}" class="btn btn-outline" download>Presentation Template</a>` : ''}
+          ${downloads.certificates ? `<a href="${downloads.certificates}" class="btn btn-outline" ${downloads.certificates !== '#' ? 'target="_blank" rel="noopener noreferrer"' : 'onclick="if(this.getAttribute(\'href\')===\'#\'){alert(\'Certificate downloads will be available soon.\'); return false;}"'}>Certificates</a>` : ''}
         </div>
       </div>
     </section>
