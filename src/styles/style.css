@@ -2749,7 +2749,7 @@ footer h4 {
         padding: 1.5rem;
     }
 
-    .papers-table-header {
+    .papers-table-header, .cert-table-header {
         display: none;
     }
 
@@ -2759,10 +2759,23 @@ footer h4 {
         gap: 0.6rem;
     }
 
-    .col-pid, .col-title, .col-reg {
+    .col-pid, .col-title, .col-reg, .cert-col-action, .col-cert-badge, .col-cert-info, .col-cert-action {
         width: 100%;
         text-align: left;
         padding-right: 0;
+        align-items: flex-start;
+        justify-content: flex-start;
+    }
+
+    .cert-person-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.6rem;
+    }
+
+    .col-cert-action .cert-download-btn {
+        width: 100%;
+        justify-content: center;
     }
 
     .schedule-switch-banner {
@@ -2770,4 +2783,394 @@ footer h4 {
         flex-direction: column;
         text-align: center;
     }
-}
+}
+
+/* Presentation Certificates Page Styles */
+.certificates-page .badge-pid-cert {
+    background: #7c3aed;
+    color: #ffffff;
+    box-shadow: 0 1px 3px rgba(124, 58, 237, 0.35);
+}
+
+.certificates-page .info-pill-cert {
+    background: #f5f3ff;
+    border-color: #ddd6fe;
+    color: #6d28d9;
+}
+
+.certificates-page .info-pill-verified {
+    background: #ecfdf5;
+    border-color: #a7f3d0;
+    color: #047857;
+}
+
+.cert-col-action {
+    width: 160px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 0.35rem;
+}
+
+.cert-download-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    background: linear-gradient(135deg, #7c3aed 0%, #9333ea 100%);
+    color: #ffffff !important;
+    padding: 0.45rem 1rem;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-decoration: none;
+    box-shadow: 0 2px 6px rgba(124, 58, 237, 0.3);
+    transition: all 0.2s ease;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    white-space: nowrap;
+}
+
+.cert-download-btn:hover {
+    background: linear-gradient(135deg, #6d28d9 0%, #7e22ce 100%);
+    box-shadow: 0 4px 12px rgba(124, 58, 237, 0.45);
+    transform: translateY(-1px);
+    color: #ffffff !important;
+}
+
+.cert-badge-presented {
+    display: inline-flex;
+    align-items: center;
+    background: #dcfce7;
+    color: #15803d;
+    border: 1px solid #86efac;
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 0.15rem 0.55rem;
+    border-radius: 999px;
+}
+
+.cert-badge-ineligible {
+    display: inline-flex;
+    align-items: center;
+    background: #fee2e2;
+    color: #b91c1c;
+    border: 1px solid #fca5a5;
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 0.15rem 0.55rem;
+    border-radius: 999px;
+}
+
+.cert-ineligible-note {
+    font-size: 0.68rem;
+    color: #991b1b;
+    font-weight: 500;
+}
+
+/* Category Navigation Pills (Reviewers, Presenters, Session Chairs) */
+.cert-category-nav {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: center;
+    margin: 2rem 0;
+    flex-wrap: wrap;
+}
+
+.cert-category-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.7rem 1.4rem;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: #ffffff;
+    color: var(--text-dark);
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.2s ease;
+}
+
+.cert-category-btn:hover {
+    border-color: #a78bfa;
+    background: #f5f3ff;
+    color: #6d28d9;
+    transform: translateY(-2px);
+}
+
+.cert-category-btn.active {
+    background: linear-gradient(135deg, #7c3aed 0%, #9333ea 100%);
+    color: #ffffff;
+    border-color: transparent;
+    box-shadow: 0 4px 15px rgba(124, 58, 237, 0.4);
+}
+
+.cert-category-count {
+    background: rgba(0, 0, 0, 0.08);
+    color: inherit;
+    padding: 0.15rem 0.55rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.cert-category-btn.active .cert-category-count {
+    background: rgba(255, 255, 255, 0.25);
+    color: #ffffff;
+}
+
+/* Certificate Section Blocks */
+.cert-section-block {
+    margin-top: 2.5rem;
+    padding-top: 1.5rem;
+    border-top: 2px dashed #e2e8f0;
+}
+
+.cert-section-block:first-of-type {
+    border-top: none;
+    margin-top: 1rem;
+    padding-top: 0;
+}
+
+.cert-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.8rem;
+    border-bottom: 2px solid #f1f5f9;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.cert-section-heading {
+    font-size: 1.45rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin-bottom: 0.25rem;
+}
+
+.cert-section-sub {
+    font-size: 0.88rem;
+    color: #64748b;
+    margin: 0;
+}
+
+.cert-section-counter-badge {
+    background: #f1f5f9;
+    color: #334155;
+    border: 1px solid #cbd5e1;
+    font-size: 0.78rem;
+    font-weight: 700;
+    padding: 0.3rem 0.75rem;
+    border-radius: 999px;
+}
+
+/* Narrow Single-Column Rows for Reviewers & Chairs */
+.cert-table-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    margin-top: 1.25rem;
+}
+
+.cert-table-header {
+    display: flex;
+    align-items: center;
+    background: #f8fafc;
+    border-bottom: 2px solid #e2e8f0;
+    padding: 0.75rem 1.25rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.cert-person-row {
+    display: flex;
+    align-items: center;
+    padding: 0.65rem 1.25rem;
+    border-bottom: 1px solid #f1f5f9;
+    transition: background-color 0.15s ease;
+}
+
+.cert-person-row:last-child {
+    border-bottom: none;
+}
+
+.cert-person-row:hover {
+    background-color: #f8fafc;
+}
+
+.cert-person-row.cert-reviewer-row {
+    border-left: 4px solid #9333ea;
+}
+
+.cert-person-row.cert-chair-row {
+    border-left: 4px solid #2563eb;
+}
+
+.col-cert-badge {
+    width: 180px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+}
+
+.col-cert-info {
+    flex: 1;
+    padding: 0 1.25rem;
+    min-width: 0;
+}
+
+.col-cert-action {
+    width: 190px;
+    flex-shrink: 0;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+.cert-row-person-name {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0;
+    line-height: 1.35;
+}
+
+.cert-row-aff-meta {
+    font-size: 0.8rem;
+    color: #64748b;
+    margin-top: 0.2rem;
+    line-height: 1.3;
+}
+
+.cert-chair-name-sessions {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    flex-wrap: wrap;
+}
+
+.cert-sessions-inline-wrap {
+    display: inline-flex;
+    gap: 0.35rem;
+    flex-wrap: wrap;
+}
+
+.cert-download-btn-sm {
+    padding: 0.38rem 0.85rem;
+    font-size: 0.76rem;
+}
+
+.cert-role-badge {
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.cert-role-chair {
+    background: #eff6ff;
+    color: #1d4ed8;
+    border: 1px solid #bfdbfe;
+}
+
+.cert-role-cochair {
+    background: #f0fdf4;
+    color: #15803d;
+    border: 1px solid #bbf7d0;
+}
+
+.cert-role-reviewer {
+    background: #faf5ff;
+    color: #7e22ce;
+    border: 1px solid #e9d5ff;
+}
+
+.cert-subgroup-badge {
+    font-size: 0.68rem;
+    font-weight: 600;
+    padding: 0.18rem 0.5rem;
+    border-radius: 999px;
+    background: #f1f5f9;
+    color: #475569;
+    border: 1px solid #e2e8f0;
+}
+
+.cert-session-pill {
+    font-size: 0.72rem;
+    color: #334155;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    padding: 0.2rem 0.45rem;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+/* Reviewer Search Prompt Card */
+.cert-search-prompt-card {
+    max-width: 650px;
+    margin: 2.5rem auto 1.5rem auto;
+    text-align: center;
+}
+
+.cert-search-prompt-box {
+    background: #ffffff;
+    border: 2px dashed #cbd5e1;
+    border-radius: 1.25rem;
+    padding: 3rem 2rem;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.2s ease;
+}
+
+.cert-search-prompt-box:hover {
+    border-color: #a855f7;
+    background: #faf5ff;
+}
+
+.cert-prompt-icon {
+    font-size: 3rem;
+    display: inline-block;
+    margin-bottom: 0.75rem;
+}
+
+.cert-prompt-title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 0.5rem;
+}
+
+.cert-prompt-text {
+    font-size: 0.95rem;
+    color: #64748b;
+    line-height: 1.55;
+    margin: 0 auto;
+    max-width: 500px;
+}
+
+.cert-search-count-pill {
+    display: inline-block;
+    background: #f3e8ff;
+    color: #7e22ce;
+    border: 1px solid #d8b4fe;
+    font-size: 0.82rem;
+    font-weight: 600;
+    padding: 0.3rem 0.85rem;
+    border-radius: 999px;
+    box-shadow: 0 1px 3px rgba(126, 34, 206, 0.1);
+}
+

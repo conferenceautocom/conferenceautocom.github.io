@@ -159,9 +159,7 @@ export const renderGuidelines = (data) => {
   `;
 };
 
-export const renderHero = (config) => {
-  const certsLink = config.site?.importantDownloads?.certificates || '#';
-  return `
+export const renderHero = (config) => `
   <section class="hero">
     <div class="container">
       <div class="hero-content">
@@ -179,13 +177,12 @@ export const renderHero = (config) => {
           <button class="btn btn-primary hero-btn-itinerary" onclick="window.navigate('itinerary')">🗓️ Conference Itinerary</button>
           <button class="btn btn-primary hero-btn-schedule" onclick="window.navigate('schedule')">📑 Presentation Schedule</button>
           <a href="/downloads/AUTOCOM_26_Author_Presentation_Template.pptx" class="btn btn-primary hero-btn-template" download="AUTOCOM_26_Author_Presentation_Template.pptx">📊 Download Presentation Template</a>
-          <a href="${certsLink}" class="btn btn-primary hero-btn-certificates" ${certsLink && certsLink !== '#' ? 'target="_blank" rel="noopener noreferrer"' : 'onclick="if(this.getAttribute(\'href\')===\'#\'){alert(\'Certificate downloads will be available soon.\'); return false;}"'}>📜 Download Certificates</a>
+          <button class="btn btn-primary hero-btn-certificates" onclick="window.navigate('certificates')">📜 Download Certificates</button>
         </div>
       </div>
     </div>
   </section>
 `;
-};
 
 export const parseSpeakersCSV = (csvText) => {
   if (!csvText || typeof csvText !== 'string') return [];
@@ -1154,6 +1151,7 @@ export const parseScheduleCSV = (csvText) => {
   const authorNameIdx = headers.findIndex(h => h === 'author name' || h === 'author' || h === 'authors' || (h.includes('author') && !h.includes('affiliation')));
   const authorAffIdx = headers.findIndex(h => h === 'author affiliation' || h === 'affiliation' || h.includes('affiliation'));
   const presentedIdx = headers.findIndex(h => h === 'presented' || h.includes('presented') || h === 'is_presented' || h === 'presentation');
+  const certIdx = getIndex(['certificate', 'certificate_link', 'cert_link', 'cert', 'cert_url', 'download_certificate']);
 
   const cleanChairText = (val) => {
     if (!val) return '';
@@ -1253,6 +1251,9 @@ export const parseScheduleCSV = (csvText) => {
     if (!sessionObj.sessionChair && rawSessionChair) sessionObj.sessionChair = rawSessionChair;
     if (!sessionObj.coChair && rawCoChair) sessionObj.coChair = rawCoChair;
 
+    const rawCertLink = (certIdx !== -1 && r[certIdx]) ? r[certIdx].trim() : '';
+    const certificateLink = rawCertLink || `/downloads/certificates/${paperId}.pdf`;
+
     sessionObj.papers.push({
       paperId: paperId,
       title: paperTitle,
@@ -1261,7 +1262,8 @@ export const parseScheduleCSV = (csvText) => {
       authorName: rawAuthorName,
       authorAffiliation: rawAuthorAff,
       presented: rawPresented,
-      isNotPresented: isNotPresented
+      isNotPresented: isNotPresented,
+      certificateLink: certificateLink
     });
   }
 
@@ -1556,6 +1558,7 @@ export const renderSchedule = (rawInput) => {
         <!-- Schedule CTA Buttons -->
         <div class="schedule-cta" style="margin-top: 3.5rem;">
           <button class="btn btn-primary hero-btn-itinerary" onclick="window.navigate('itinerary')">🗓️ View Conference Itinerary</button>
+          <button class="btn btn-primary hero-btn-certificates" onclick="window.navigate('certificates')">📜 Download Certificates</button>
           <button class="btn btn-primary" onclick="window.navigate('registration')">Proceed to Registration</button>
           <button class="btn btn-outline" onclick="window.navigate('guidelines')">Author Guidelines</button>
           <button class="btn btn-outline" onclick="window.navigate('tracks')">Technical Tracks</button>
@@ -1565,3 +1568,961 @@ export const renderSchedule = (rawInput) => {
   `;
 };
 
+export const extractSessionChairs = (rawSchedule) => {
+  if (!rawSchedule) return [];
+  const lines = typeof rawSchedule === 'string' ? parseCSVRows(rawSchedule) : [];
+  if (lines.length < 2) return [];
+
+  const headers = lines[0].map(h => h.trim().toLowerCase());
+  const chairIdx = headers.findIndex(h => h === 'session chair' || h === 'sessionchair' || (h.includes('chair') && !h.includes('co')));
+  const coChairIdx = headers.findIndex(h => h === 'co chair' || h === 'cochair' || h === 'co-chair' || h.includes('co chair') || h.includes('co-chair'));
+  const trackIdx = headers.findIndex(h => h === 'track');
+  const dayIdx = headers.findIndex(h => h === 'day');
+  const hallIdx = headers.findIndex(h => h === 'hall');
+  const timeIdx = headers.findIndex(h => h === 'time');
+
+  const chairsMap = new Map();
+  for (let i = 1; i < lines.length; i++) {
+    const r = lines[i];
+    const c = (chairIdx !== -1 && r[chairIdx]) ? r[chairIdx].trim() : '';
+    const co = (coChairIdx !== -1 && r[coChairIdx]) ? r[coChairIdx].trim() : '';
+    const track = (trackIdx !== -1 && r[trackIdx]) ? r[trackIdx].trim() : '';
+    const day = (dayIdx !== -1 && r[dayIdx]) ? r[dayIdx].trim() : '';
+    const hall = (hallIdx !== -1 && r[hallIdx]) ? r[hallIdx].trim() : '';
+    const time = (timeIdx !== -1 && r[timeIdx]) ? r[timeIdx].trim() : '';
+
+    const addChair = (rawName, role) => {
+      if (!rawName) return;
+      const cleanName = rawName.replace(/\r?\n+/g, ' ').replace(/\s+/g, ' ').trim();
+      let name = cleanName;
+      let affiliation = '';
+      const match = cleanName.match(/^([^(]+)\((.+)\)$/);
+      if (match) {
+        name = match[1].trim();
+        affiliation = match[2].trim();
+      }
+      const key = `${cleanName}::${role}`;
+      if (!chairsMap.has(key)) {
+        const cleanId = name.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+        chairsMap.set(key, {
+          fullName: cleanName,
+          name: name,
+          affiliation: affiliation,
+          role: role,
+          cleanId: cleanId,
+          certificateLink: `/downloads/certificates/chair_${cleanId}.pdf`,
+          sessions: []
+        });
+      }
+      const sList = chairsMap.get(key).sessions;
+      if (!sList.some(s => s.track === track && s.day === day)) {
+        sList.push({ track, day, hall, time });
+      }
+    };
+
+    addChair(c, 'Session Chair');
+    addChair(co, 'Co-Chair');
+  }
+
+  return Array.from(chairsMap.values());
+};
+
+export const extractReviewers = (committeeData, reviewersCsv) => {
+  if (reviewersCsv && typeof reviewersCsv === 'string') {
+    const lines = parseCSVRows(reviewersCsv);
+    if (lines.length >= 2) {
+      const headers = lines[0].map(h => h.trim().toLowerCase());
+      const nameIdx = headers.findIndex(h => h.includes('name'));
+      const affIdx = headers.findIndex(h => h.includes('affiliation') || h.includes('org') || h.includes('institution'));
+      const grpIdx = headers.findIndex(h => h.includes('group') || h.includes('category') || h.includes('type'));
+      const certIdx = headers.findIndex(h => h.includes('certificate') || h.includes('cert'));
+
+      const list = [];
+      for (let i = 1; i < lines.length; i++) {
+        const r = lines[i];
+        const name = (nameIdx !== -1 && r[nameIdx]) ? r[nameIdx].trim() : '';
+        if (!name) continue;
+        const aff = (affIdx !== -1 && r[affIdx]) ? r[affIdx].trim() : '';
+        const grp = (grpIdx !== -1 && r[grpIdx]) ? r[grpIdx].trim() : 'Reviewer';
+        const cleanId = name.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+        const cert = (certIdx !== -1 && r[certIdx]) ? r[certIdx].trim() : `/downloads/certificates/reviewer_${cleanId}.pdf`;
+        list.push({
+          name: name,
+          affiliation: aff,
+          subgroup: grp,
+          role: 'Reviewer',
+          cleanId: cleanId,
+          certificateLink: cert
+        });
+      }
+      if (list.length > 0) return list;
+    }
+  }
+
+  if (committeeData && committeeData.categories) {
+    const tpcCat = committeeData.categories.find(c => c.id === 'tpc');
+    if (tpcCat && tpcCat.subgroups) {
+      const list = [];
+      tpcCat.subgroups.forEach(sg => {
+        (sg.members || []).forEach(m => {
+          const cleanId = m.name.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+          list.push({
+            name: m.name,
+            affiliation: m.affiliation || '',
+            subgroup: sg.name || 'TPC Reviewer',
+            role: 'Reviewer',
+            cleanId: cleanId,
+            certificateLink: `/downloads/certificates/reviewer_${cleanId}.pdf`
+          });
+        });
+      });
+      return list;
+    }
+  }
+
+  return [];
+};
+
+export const parseCertificatesCSV = (csvText) => {
+  if (!csvText || typeof csvText !== 'string') {
+    return { reviewers: [], presenters: [], sessionChairs: [] };
+  }
+
+  const lines = parseCSVRows(csvText);
+  if (lines.length < 2) return { reviewers: [], presenters: [], sessionChairs: [] };
+
+  const headers = lines[0].map(h => h.trim().toLowerCase());
+  const getIndex = (possibleNames) => {
+    return headers.findIndex(h => possibleNames.some(p => h === p || h.includes(p)));
+  };
+
+  const catIdx = getIndex(['category', 'section', 'type']);
+  const idIdx = getIndex(['id', 'paper id', 'paper_id', 'rev id', 'chair id']);
+  const nameIdx = getIndex(['name', 'author', 'person', 'full name', 'fullname']);
+  const affIdx = getIndex(['affiliation', 'aff', 'institution', 'organization', 'dept', 'department']);
+  const titleRoleIdx = getIndex(['title_or_role', 'title', 'role', 'paper title', 'papertitle']);
+  const grpIdx = getIndex(['group', 'subgroup', 'session', 'day']);
+  const trackIdx = getIndex(['track']);
+  const hallIdx = getIndex(['hall', 'location', 'room']);
+  const timeIdx = getIndex(['time', 'slot']);
+  const presentedIdx = getIndex(['presented', 'is_presented', 'status']);
+  const certIdx = getIndex(['certificate_link', 'cert_link', 'certificate', 'cert', 'download_link', 'link']);
+
+  const reviewers = [];
+  const presenters = [];
+  const sessionChairs = [];
+
+  for (let i = 1; i < lines.length; i++) {
+    const r = lines[i];
+    if (!r || r.length === 0) continue;
+
+    const cat = (catIdx !== -1 && r[catIdx]) ? r[catIdx].trim().toLowerCase() : '';
+    const id = (idIdx !== -1 && r[idIdx]) ? r[idIdx].trim() : '';
+    const name = (nameIdx !== -1 && r[nameIdx]) ? r[nameIdx].trim() : '';
+    const aff = (affIdx !== -1 && r[affIdx]) ? r[affIdx].trim() : '';
+    const titleOrRole = (titleRoleIdx !== -1 && r[titleRoleIdx]) ? r[titleRoleIdx].trim() : '';
+    const group = (grpIdx !== -1 && r[grpIdx]) ? r[grpIdx].trim() : '';
+    const track = (trackIdx !== -1 && r[trackIdx]) ? r[trackIdx].trim() : '';
+    const hall = (hallIdx !== -1 && r[hallIdx]) ? r[hallIdx].trim() : '';
+    const time = (timeIdx !== -1 && r[timeIdx]) ? r[timeIdx].trim() : '';
+    const presented = (presentedIdx !== -1 && r[presentedIdx]) ? r[presentedIdx].trim() : 'yes';
+    const certLink = (certIdx !== -1 && r[certIdx]) ? r[certIdx].trim() : '';
+
+    if (!name && !titleOrRole && !id) continue;
+
+    const cleanId = (name || id).toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+    const isNotPresented = ['no', 'not presented', 'not-presented', 'absent', 'false', '0', 'n'].includes(presented.toLowerCase().trim());
+
+    const item = {
+      id: id,
+      name: name,
+      affiliation: aff,
+      titleOrRole: titleOrRole,
+      group: group,
+      track: track,
+      hall: hall,
+      time: time,
+      presented: presented,
+      isNotPresented: isNotPresented,
+      certificateLink: certLink || `/downloads/certificates/${id || cleanId}.pdf`,
+      cleanId: cleanId
+    };
+
+    if (cat.includes('reviewer')) {
+      reviewers.push(item);
+    } else if (cat.includes('chair')) {
+      sessionChairs.push(item);
+    } else if (cat.includes('present') || cat.includes('paper') || cat.includes('author')) {
+      presenters.push(item);
+    } else {
+      if (id.startsWith('REV-') || titleOrRole.toLowerCase().includes('reviewer')) {
+        reviewers.push(item);
+      } else if (id.startsWith('CHAIR-') || titleOrRole.toLowerCase().includes('chair')) {
+        sessionChairs.push(item);
+      } else {
+        presenters.push(item);
+      }
+    }
+  }
+
+  return { reviewers, presenters, sessionChairs };
+};
+
+export const renderCertificates = (rawInput, config) => {
+  let certs = { reviewers: [], presenters: [], sessionChairs: [] };
+
+  if (typeof rawInput === 'string') {
+    const firstLine = rawInput.trim().split('\n')[0].toLowerCase();
+    if (firstLine.includes('category') || firstLine.includes('title_or_role') || firstLine.includes('certificate')) {
+      certs = parseCertificatesCSV(rawInput);
+    } else {
+      const sched = parseScheduleCSV(rawInput);
+      const chairs = extractSessionChairs(rawInput);
+      const pres = [];
+      (sched.days || []).forEach(d => {
+        (d.sessions || []).forEach(s => {
+          (s.papers || []).forEach(p => {
+            pres.push({
+              id: p.paperId,
+              name: p.authorName || '',
+              affiliation: p.authorAffiliation || '',
+              titleOrRole: p.title || '',
+              group: d.day || '',
+              track: s.track || '',
+              hall: s.hall || '',
+              time: s.time || '',
+              presented: p.isNotPresented ? 'no' : 'yes',
+              isNotPresented: p.isNotPresented,
+              certificateLink: p.certificateLink || `/downloads/certificates/${p.paperId}.pdf`,
+              cleanId: String(p.paperId)
+            });
+          });
+        });
+      });
+      certs = {
+        reviewers: [],
+        presenters: pres,
+        sessionChairs: chairs.map(c => ({
+          id: c.cleanId,
+          name: c.name,
+          affiliation: c.affiliation,
+          titleOrRole: c.role,
+          group: c.role,
+          track: c.sessions.map(s => s.track).join('; '),
+          hall: c.sessions.map(s => s.hall).join('; '),
+          time: c.sessions.map(s => `${s.day} (${s.time})`).join('; '),
+          presented: 'yes',
+          isNotPresented: false,
+          certificateLink: c.certificateLink,
+          cleanId: c.cleanId
+        }))
+      };
+    }
+  } else if (rawInput && typeof rawInput === 'object') {
+    if (rawInput.reviewers || rawInput.presenters || rawInput.sessionChairs) {
+      certs = {
+        reviewers: rawInput.reviewers || [],
+        presenters: rawInput.presenters || [],
+        sessionChairs: rawInput.sessionChairs || []
+      };
+    } else if (rawInput.schedule || rawInput.committee) {
+      const revs = extractReviewers(rawInput.committee, rawInput.reviewersCsv);
+      const chairs = extractSessionChairs(rawInput.schedule);
+      const sched = typeof rawInput.schedule === 'string' ? parseScheduleCSV(rawInput.schedule) : (rawInput.schedule || { days: [] });
+      const pres = [];
+      (sched.days || []).forEach(d => {
+        (d.sessions || []).forEach(s => {
+          (s.papers || []).forEach(p => {
+            pres.push({
+              id: p.paperId,
+              name: p.authorName || '',
+              affiliation: p.authorAffiliation || '',
+              titleOrRole: p.title || '',
+              group: d.day || '',
+              track: s.track || '',
+              hall: s.hall || '',
+              time: s.time || '',
+              presented: p.isNotPresented ? 'no' : 'yes',
+              isNotPresented: p.isNotPresented,
+              certificateLink: p.certificateLink || `/downloads/certificates/${p.paperId}.pdf`,
+              cleanId: String(p.paperId)
+            });
+          });
+        });
+      });
+      certs = {
+        reviewers: revs.map(r => ({
+          id: r.cleanId,
+          name: r.name,
+          affiliation: r.affiliation,
+          titleOrRole: 'TPC Reviewer',
+          group: r.subgroup || 'International',
+          track: '',
+          hall: '',
+          time: '',
+          presented: 'yes',
+          isNotPresented: false,
+          certificateLink: r.certificateLink,
+          cleanId: r.cleanId
+        })),
+        presenters: pres,
+        sessionChairs: chairs.map(c => ({
+          id: c.cleanId,
+          name: c.name,
+          affiliation: c.affiliation,
+          titleOrRole: c.role,
+          group: c.role,
+          track: c.sessions.map(s => s.track).join('; '),
+          hall: c.sessions.map(s => s.hall).join('; '),
+          time: c.sessions.map(s => `${s.day} (${s.time})`).join('; '),
+          presented: 'yes',
+          isNotPresented: false,
+          certificateLink: c.certificateLink,
+          cleanId: c.cleanId
+        }))
+      };
+    }
+  }
+
+  const { reviewers, presenters, sessionChairs } = certs;
+
+  if (reviewers.length === 0 && presenters.length === 0 && sessionChairs.length === 0) {
+    return '<section class="section-placeholder"><div class="container"><p>Conference certificates information unavailable.</p></div></section>';
+  }
+
+  // 1. Interactive Category Switcher
+  window.switchCertCategory = (catKey) => {
+    document.querySelectorAll('.cert-category-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.getAttribute('data-cat') === String(catKey));
+    });
+
+    const sRev = document.getElementById('cert-section-reviewers');
+    const sPres = document.getElementById('cert-section-presenters');
+    const sChairs = document.getElementById('cert-section-chairs');
+
+    if (catKey === 'all') {
+      if (sRev) sRev.style.display = 'block';
+      if (sPres) sPres.style.display = 'block';
+      if (sChairs) sChairs.style.display = 'block';
+    } else {
+      if (sRev) sRev.style.display = (catKey === 'reviewers') ? 'block' : 'none';
+      if (sPres) sPres.style.display = (catKey === 'presenters') ? 'block' : 'none';
+      if (sChairs) sChairs.style.display = (catKey === 'chairs') ? 'block' : 'none';
+    }
+  };
+
+  // 2. Presenters Day/Session Tab Switcher
+  window.switchCertDay = (dayKey) => {
+    document.querySelectorAll('.cert-day-tab-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.getAttribute('data-day') === String(dayKey));
+    });
+    const searchVal = (document.getElementById('cert-paper-search-input')?.value || '').toLowerCase().trim();
+    const rows = document.querySelectorAll('.cert-paper-row-item');
+    let visibleCount = 0;
+
+    rows.forEach(row => {
+      const g = (row.getAttribute('data-group') || '').toLowerCase();
+      const groupMatches = (dayKey === 'all' || g === dayKey.toLowerCase());
+
+      const pid = row.getAttribute('data-pid') || '';
+      const title = row.getAttribute('data-title') || '';
+      const author = row.getAttribute('data-author') || '';
+      const aff = row.getAttribute('data-aff') || '';
+      const track = row.getAttribute('data-track') || '';
+      const hall = row.getAttribute('data-hall') || '';
+      const presented = row.getAttribute('data-presented') || '';
+
+      const searchMatches = !searchVal || 
+        pid.includes(searchVal) || 
+        title.includes(searchVal) || 
+        author.includes(searchVal) || 
+        aff.includes(searchVal) || 
+        track.includes(searchVal) || 
+        hall.includes(searchVal) || 
+        g.includes(searchVal) ||
+        ((searchVal.includes('not presented') || searchVal.includes('absent')) && presented === 'no') ||
+        (searchVal === 'presented' && presented === 'yes');
+
+      const show = groupMatches && searchMatches;
+      row.style.display = show ? 'flex' : 'none';
+      if (show) visibleCount++;
+    });
+
+    const noResultsMsg = document.getElementById('no-cert-paper-results');
+    if (noResultsMsg) {
+      noResultsMsg.style.display = visibleCount === 0 ? 'block' : 'none';
+    }
+  };
+
+  // 3. Presenters Search Filter
+  window.filterCertPapers = (query) => {
+    const q = (query || '').toLowerCase().trim();
+    const activeTab = document.querySelector('.cert-day-tab-btn.active')?.getAttribute('data-day') || 'all';
+    const rows = document.querySelectorAll('.cert-paper-row-item');
+    let visibleCount = 0;
+
+    rows.forEach(row => {
+      const g = (row.getAttribute('data-group') || '').toLowerCase();
+      const groupMatches = (activeTab === 'all' || g === activeTab.toLowerCase());
+
+      const pid = row.getAttribute('data-pid') || '';
+      const title = row.getAttribute('data-title') || '';
+      const author = row.getAttribute('data-author') || '';
+      const aff = row.getAttribute('data-aff') || '';
+      const track = row.getAttribute('data-track') || '';
+      const hall = row.getAttribute('data-hall') || '';
+      const presented = row.getAttribute('data-presented') || '';
+
+      const searchMatches = !q || 
+        pid.includes(q) || 
+        title.includes(q) || 
+        author.includes(q) || 
+        aff.includes(q) || 
+        track.includes(q) || 
+        hall.includes(q) || 
+        g.includes(q) ||
+        ((q.includes('not presented') || q.includes('absent')) && presented === 'no') ||
+        (q === 'presented' && presented === 'yes');
+
+      const show = groupMatches && searchMatches;
+      row.style.display = show ? 'flex' : 'none';
+      if (show) visibleCount++;
+    });
+
+    const noResultsMsg = document.getElementById('no-cert-paper-results');
+    if (noResultsMsg) {
+      noResultsMsg.style.display = visibleCount === 0 ? 'block' : 'none';
+    }
+  };
+
+  // 4. Session Chairs Role Switcher
+  window.switchChairRole = (roleKey) => {
+    document.querySelectorAll('.cert-chair-tab-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.getAttribute('data-role') === String(roleKey));
+    });
+    const searchVal = (document.getElementById('cert-chair-search-input')?.value || '').toLowerCase().trim();
+    const rows = document.querySelectorAll('.cert-chair-row');
+    let visibleCount = 0;
+
+    rows.forEach(row => {
+      const r = (row.getAttribute('data-role') || '').toLowerCase();
+      const roleMatches = (roleKey === 'all' || r === roleKey.toLowerCase() || r.includes(roleKey.toLowerCase()));
+
+      const name = (row.getAttribute('data-name') || '').toLowerCase();
+      const aff = (row.getAttribute('data-aff') || '').toLowerCase();
+      const tracks = (row.getAttribute('data-tracks') || '').toLowerCase();
+      const searchMatches = !searchVal || name.includes(searchVal) || aff.includes(searchVal) || r.includes(searchVal) || tracks.includes(searchVal);
+
+      const show = roleMatches && searchMatches;
+      row.style.display = show ? 'flex' : 'none';
+      if (show) visibleCount++;
+    });
+
+    const noResultsMsg = document.getElementById('no-cert-chair-results');
+    if (noResultsMsg) {
+      noResultsMsg.style.display = visibleCount === 0 ? 'block' : 'none';
+    }
+  };
+
+  // 5. Session Chairs Search Filter
+  window.filterCertChairs = (query) => {
+    const q = (query || '').toLowerCase().trim();
+    const activeRole = document.querySelector('.cert-chair-tab-btn.active')?.getAttribute('data-role') || 'all';
+    const rows = document.querySelectorAll('.cert-chair-row');
+    let visibleCount = 0;
+
+    rows.forEach(row => {
+      const r = (row.getAttribute('data-role') || '').toLowerCase();
+      const roleMatches = (activeRole === 'all' || r === activeRole.toLowerCase() || r.includes(activeRole.toLowerCase()));
+
+      const name = (row.getAttribute('data-name') || '').toLowerCase();
+      const aff = (row.getAttribute('data-aff') || '').toLowerCase();
+      const tracks = (row.getAttribute('data-tracks') || '').toLowerCase();
+      const searchMatches = !q || name.includes(q) || aff.includes(q) || r.includes(q) || tracks.includes(q);
+
+      const show = roleMatches && searchMatches;
+      row.style.display = show ? 'flex' : 'none';
+      if (show) visibleCount++;
+    });
+
+    const noResultsMsg = document.getElementById('no-cert-chair-results');
+    if (noResultsMsg) {
+      noResultsMsg.style.display = visibleCount === 0 ? 'block' : 'none';
+    }
+  };
+
+  // 6. Reviewers Subgroup Switcher
+  window.switchReviewerGroup = (groupKey) => {
+    document.querySelectorAll('.cert-rev-tab-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.getAttribute('data-group') === String(groupKey));
+    });
+    const searchVal = (document.getElementById('cert-rev-search-input')?.value || '').trim();
+    window.filterCertReviewers(searchVal);
+  };
+
+  // 7. Reviewers Search Filter
+  window.filterCertReviewers = (query) => {
+    const q = (query || '').toLowerCase().trim();
+    const promptCard = document.getElementById('cert-rev-search-prompt');
+    const tableCard = document.getElementById('cert-rev-table');
+    const noResultsMsg = document.getElementById('no-cert-rev-results');
+    const countBadge = document.getElementById('cert-rev-search-count');
+    const rows = document.querySelectorAll('.cert-reviewer-row');
+
+    if (!q) {
+      // Empty search - keep reviewers hidden and show search prompt
+      rows.forEach(row => row.style.display = 'none');
+      if (tableCard) tableCard.style.display = 'none';
+      if (promptCard) promptCard.style.display = 'block';
+      if (noResultsMsg) noResultsMsg.style.display = 'none';
+      if (countBadge) countBadge.style.display = 'none';
+      return;
+    }
+
+    if (promptCard) promptCard.style.display = 'none';
+    let visibleCount = 0;
+    const activeGroup = document.querySelector('.cert-rev-tab-btn.active')?.getAttribute('data-group') || 'all';
+
+    rows.forEach(row => {
+      const g = (row.getAttribute('data-group') || '').toLowerCase();
+      const groupMatches = (activeGroup === 'all' || g === activeGroup.toLowerCase());
+
+      const id = (row.getAttribute('data-id') || '').toLowerCase();
+      const name = (row.getAttribute('data-name') || '').toLowerCase();
+      const aff = (row.getAttribute('data-aff') || '').toLowerCase();
+      const searchMatches = id.includes(q) || name.includes(q) || aff.includes(q) || g.includes(q);
+
+      const show = groupMatches && searchMatches;
+      row.style.display = show ? 'flex' : 'none';
+      if (show) visibleCount++;
+    });
+
+    if (visibleCount > 0) {
+      if (tableCard) tableCard.style.display = 'block';
+      if (noResultsMsg) noResultsMsg.style.display = 'none';
+      if (countBadge) {
+        countBadge.textContent = `Found ${visibleCount} matching reviewer certificate${visibleCount > 1 ? 's' : ''}`;
+        countBadge.style.display = 'inline-block';
+      }
+    } else {
+      if (tableCard) tableCard.style.display = 'none';
+      if (noResultsMsg) noResultsMsg.style.display = 'block';
+      if (countBadge) countBadge.style.display = 'none';
+    }
+  };
+
+  const totalPapers = presenters.length;
+  const presentedPapers = presenters.filter(p => !p.isNotPresented).length;
+  const totalAllEligible = reviewers.length + presentedPapers + sessionChairs.length;
+
+  const revGroups = [...new Set(reviewers.map(r => r.group).filter(Boolean))];
+  const presGroups = [...new Set(presenters.map(p => p.group).filter(Boolean))];
+  const chairRoles = [...new Set(sessionChairs.map(c => c.titleOrRole).filter(Boolean))];
+
+  const getChairSessionsPills = (c) => {
+    if (!c.track && !c.hall && !c.time) return '';
+    const tracks = (c.track || '').split(';').map(s => s.trim());
+    const halls = (c.hall || '').split(';').map(s => s.trim());
+    const times = (c.time || '').split(';').map(s => s.trim());
+    const maxLen = Math.max(tracks.length, halls.length, times.length);
+    const pills = [];
+    for (let idx = 0; idx < maxLen; idx++) {
+      const t = tracks[idx] || '';
+      const h = halls[idx] || '';
+      const tm = times[idx] || '';
+      const parts = [];
+      if (t) parts.push(t.startsWith('Track') ? t : `Track ${t}`);
+      if (h) parts.push(`(${h})`);
+      if (tm) parts.push(`• ${tm}`);
+      if (parts.length > 0) {
+        pills.push(`<span class="cert-session-pill">📍 ${parts.join(' ')}</span>`);
+      }
+    }
+    return pills.length > 0 ? `<div class="cert-sessions-inline-wrap">${pills.join('')}</div>` : '';
+  };
+
+  const getPresenterSessionPill = (p) => {
+    const parts = [];
+    if (p.track) parts.push(p.track.startsWith('Track') ? p.track : `Track ${p.track}`);
+    if (p.hall) parts.push(`(${p.hall})`);
+    if (p.time) parts.push(`• ${p.time}`);
+    if (p.group) parts.push(`• ${p.group}`);
+    if (parts.length === 0) return '';
+    return `<div class="cert-sessions-inline-wrap" style="margin-top: 0.35rem;"><span class="cert-session-pill">📍 ${parts.join(' ')}</span></div>`;
+  };
+
+  return `
+    <section class="schedule-page certificates-page presentation-summary-page">
+      <div class="container">
+        <!-- Page Header -->
+        <div class="schedule-header">
+          <h2 class="section-title">Conference Certificates</h2>
+          
+          <div class="presentation-info-banner">
+            <div class="info-pill info-pill-cert">
+              <span class="info-icon">🎓</span>
+              <span>Official IEEE AUTOCOM-26 Certificates</span>
+            </div>
+            <div class="info-pill info-pill-verified">
+              <span class="info-icon">📜</span>
+              <span>Official Verification Portal</span>
+            </div>
+          </div>
+
+          <div class="schedule-switch-banner">
+            <span>Looking for session timings, hall details, and presentation tracks?</span>
+            <button class="btn btn-sm btn-outline-accent" onclick="window.navigate('schedule')">
+              📑 View Presentation Schedule
+            </button>
+            <button class="btn btn-sm btn-outline" onclick="window.navigate('itinerary')" style="margin-left: 0.5rem;">
+              🗓️ Itinerary
+            </button>
+          </div>
+        </div>
+
+        <!-- Section Navigation Pills (Reviewers, Presenters, Session Chairs) -->
+        <div class="cert-category-nav">
+          <button class="cert-category-btn active" data-cat="all" onclick="window.switchCertCategory('all')">
+            <span>🌟</span>
+            <span>All Sections</span>
+          </button>
+          <button class="cert-category-btn" data-cat="reviewers" onclick="window.switchCertCategory('reviewers')">
+            <span>📝</span>
+            <span>Reviewers</span>
+          </button>
+          <button class="cert-category-btn" data-cat="presenters" onclick="window.switchCertCategory('presenters')">
+            <span>🎤</span>
+            <span>Presenters</span>
+            <span class="cert-category-count">${presentedPapers}</span>
+          </button>
+          <button class="cert-category-btn" data-cat="chairs" onclick="window.switchCertCategory('chairs')">
+            <span>🎙️</span>
+            <span>Session Chairs</span>
+            <span class="cert-category-count">${sessionChairs.length}</span>
+          </button>
+        </div>
+
+        <!-- ============================================== -->
+        <!-- SECTION 1: REVIEWERS                           -->
+        <!-- ============================================== -->
+        <div id="cert-section-reviewers" class="cert-section-block">
+          <div class="cert-section-header">
+            <div class="cert-section-title-wrap">
+              <h3 class="cert-section-heading">📝 Reviewer Certificates</h3>
+              <p class="cert-section-sub">Search and download certificates for Technical Program Committee & Peer Reviewers</p>
+            </div>
+          </div>
+
+          <!-- Reviewer Search Box -->
+          <div class="paper-search-wrapper" style="margin-bottom: 0.5rem;">
+            <div class="paper-search-box">
+              <span class="search-icon">🔍</span>
+              <input 
+                type="text" 
+                id="cert-rev-search-input" 
+                class="paper-search-input" 
+                placeholder="Type your name, affiliation, or reviewer ID to search..." 
+                oninput="window.filterCertReviewers(this.value)"
+                autocomplete="off"
+              />
+              <button class="clear-search-btn" onclick="document.getElementById('cert-rev-search-input').value=''; window.filterCertReviewers('');">Clear</button>
+            </div>
+            <div style="text-align: center; margin-top: 0.5rem;">
+              <span id="cert-rev-search-count" class="cert-search-count-pill" style="display: none;"></span>
+            </div>
+          </div>
+
+          ${revGroups.length > 1 ? `
+            <div class="schedule-tabs-container" style="margin-top: 1rem;">
+              <div class="schedule-tabs">
+                <button class="schedule-tab-btn cert-rev-tab-btn active" data-group="all" onclick="window.switchReviewerGroup('all')">
+                  <span class="tab-icon">🌐</span>
+                  <span class="tab-text">All Groups</span>
+                </button>
+                ${revGroups.map(g => {
+                  return `
+                  <button class="schedule-tab-btn cert-rev-tab-btn" data-group="${g.toLowerCase()}" onclick="window.switchReviewerGroup('${g.toLowerCase()}')">
+                    <span class="tab-icon">${g.toLowerCase().includes('intl') || g.toLowerCase().includes('intern') ? '✈️' : '🏛️'}</span>
+                    <span class="tab-text">${g}</span>
+                  </button>
+                `;}).join('')}
+              </div>
+            </div>
+          ` : ''}
+
+          <!-- Initial Search Prompt State (Displayed when search is empty) -->
+          <div id="cert-rev-search-prompt" class="cert-search-prompt-card">
+            <div class="cert-search-prompt-box">
+              <span class="cert-prompt-icon">🔍</span>
+              <h4 class="cert-prompt-title">Search to Find Your Reviewer Certificate</h4>
+              <p class="cert-prompt-text">
+                Please enter your <strong>Name</strong>, <strong>Affiliation</strong>, or <strong>Reviewer ID</strong> in the search box above to display and download your certificate.
+              </p>
+            </div>
+          </div>
+
+          <!-- No Reviewer Results -->
+          <div id="no-cert-rev-results" class="no-paper-results" style="display: none;">
+            <div class="empty-state-card">
+              <span class="empty-icon">🔎</span>
+              <h3>No Matching Reviewers Found</h3>
+              <p>Please check the spelling of your name or try searching with your institution/affiliation keyword.</p>
+              <button class="btn btn-sm btn-outline" onclick="document.getElementById('cert-rev-search-input').value=''; window.filterCertReviewers('');">Reset Search</button>
+            </div>
+          </div>
+
+          <!-- Reviewers Narrow Rows Table (Hidden by default, displayed only when search is active) -->
+          <div id="cert-rev-table" class="papers-table-card cert-table-card" style="display: none;">
+            <div class="papers-table-header cert-table-header">
+              <span class="col-cert-badge">Category</span>
+              <span class="col-cert-info">Reviewer & Affiliation</span>
+              <span class="col-cert-action">Certificate</span>
+            </div>
+            <div class="papers-rows-list">
+              ${reviewers.map(r => `
+                <div class="paper-row-item cert-person-row cert-reviewer-row" 
+                     style="display: none;"
+                     data-id="${(r.id || '').toLowerCase()}"
+                     data-name="${(r.name || '').toLowerCase()}" 
+                     data-aff="${(r.affiliation || '').toLowerCase()}" 
+                     data-group="${(r.group || '').toLowerCase()}">
+                  <div class="col-cert-badge">
+                    <span class="cert-role-badge cert-role-reviewer">${r.titleOrRole || 'TPC Reviewer'}</span>
+                    ${r.group ? `<span class="cert-subgroup-badge">${r.group}</span>` : ''}
+                  </div>
+                  <div class="col-cert-info">
+                    <h5 class="cert-row-person-name">👤 ${r.name}</h5>
+                    ${r.affiliation ? `<div class="cert-row-aff-meta">🏛️ ${r.affiliation}</div>` : ''}
+                  </div>
+                  <div class="col-cert-action">
+                    <a href="${r.certificateLink}" 
+                       class="cert-download-btn cert-download-btn-sm" 
+                       target="_blank" 
+                       rel="noopener noreferrer" 
+                       download="AUTOCOM_26_Reviewer_${r.cleanId}.pdf">
+                      <span>📜</span>
+                      <span>Download Certificate</span>
+                    </a>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+
+        <!-- ============================================== -->
+        <!-- SECTION 2: PRESENTERS                          -->
+        <!-- ============================================== -->
+        <div id="cert-section-presenters" class="cert-section-block">
+          <div class="cert-section-header">
+            <div class="cert-section-title-wrap">
+              <h3 class="cert-section-heading">🎤 Presenter Certificates</h3>
+              <p class="cert-section-sub">Authors of presented papers at IEEE AUTOCOM-26</p>
+            </div>
+            <span class="cert-section-counter-badge">${presentedPapers} Presented / ${totalPapers} Total Papers</span>
+          </div>
+
+          <!-- Presenter Search and Quick Filter Bar -->
+          <div class="paper-search-wrapper" style="margin-bottom: 1rem;">
+            <div class="paper-search-box">
+              <span class="search-icon">🔍</span>
+              <input 
+                type="text" 
+                id="cert-paper-search-input" 
+                class="paper-search-input" 
+                placeholder="Search by Paper ID, Title, Author, Track, Hall, or Affiliation..." 
+                oninput="window.filterCertPapers(this.value)"
+              />
+              <button class="clear-search-btn" onclick="document.getElementById('cert-paper-search-input').value=''; window.filterCertPapers('');">Clear</button>
+            </div>
+          </div>
+
+          <!-- Day Filter Tabs for Papers -->
+          <div class="schedule-tabs-container">
+            <div class="schedule-tabs">
+              <button class="schedule-tab-btn cert-day-tab-btn active" data-day="all" onclick="window.switchCertDay('all')">
+                <span class="tab-icon">📚</span>
+                <span class="tab-text">All Sessions (${totalPapers})</span>
+              </button>
+              ${presGroups.map(g => {
+                const count = presenters.filter(p => p.group === g).length;
+                return `
+                <button class="schedule-tab-btn cert-day-tab-btn" data-day="${g.toLowerCase()}" onclick="window.switchCertDay('${g.toLowerCase()}')">
+                  <span class="tab-icon">🗓️</span>
+                  <span class="tab-text">${g} (${count})</span>
+                </button>
+              `;}).join('')}
+            </div>
+          </div>
+
+          <!-- No Paper Results Fallback -->
+          <div id="no-cert-paper-results" class="no-paper-results" style="display: none;">
+            <div class="empty-state-card">
+              <span class="empty-icon">🔎</span>
+              <h3>No Matching Presenter Certificates Found</h3>
+              <p>Try searching with another Paper ID or author name keyword.</p>
+              <button class="btn btn-sm btn-outline" onclick="document.getElementById('cert-paper-search-input').value=''; window.filterCertPapers('');">Reset Search</button>
+            </div>
+          </div>
+
+          <!-- Presenters Narrow Rows Table -->
+          <div class="papers-table-card cert-table-card">
+            <div class="papers-table-header cert-table-header">
+              <span class="col-pid">Paper ID</span>
+              <span class="col-title">Paper Title & Presenter Details</span>
+              <span class="col-reg">Certificate</span>
+            </div>
+            <div class="papers-rows-list">
+              ${presenters.map(p => `
+                <div class="paper-row-item cert-paper-row-item ${p.isNotPresented ? 'paper-not-presented' : ''}" 
+                     data-pid="${(p.id || '').toLowerCase()}" 
+                     data-title="${(p.titleOrRole || '').toLowerCase()}" 
+                     data-author="${(p.name || '').toLowerCase()}" 
+                     data-aff="${(p.affiliation || '').toLowerCase()}" 
+                     data-track="${(p.track || '').toLowerCase()}"
+                     data-hall="${(p.hall || '').toLowerCase()}"
+                     data-group="${(p.group || '').toLowerCase()}"
+                     data-presented="${p.isNotPresented ? 'no' : 'yes'}">
+                  <div class="col-pid">
+                    <span class="paper-id-badge ${p.isNotPresented ? 'badge-pid-not-presented' : 'badge-pid-cert'}">#${p.id}</span>
+                  </div>
+                  <div class="col-title">
+                    <div class="paper-title-wrapper">
+                      <h5 class="paper-name ${p.isNotPresented ? 'paper-name-not-presented' : ''}">${p.titleOrRole}</h5>
+                      ${p.isNotPresented ? `<span class="inline-label-not-presented">Not Presented</span>` : ''}
+                    </div>
+                    ${(p.name || p.affiliation) ? `
+                      <div class="paper-author-meta">
+                        ${p.name ? `<span class="paper-author-name">👤 ${p.name}</span>` : ''}
+                        ${(p.name && p.affiliation) ? `<span class="author-sep">•</span>` : ''}
+                        ${p.affiliation ? `<span class="paper-author-affiliation">🏛️ ${p.affiliation}</span>` : ''}
+                      </div>
+                    ` : ''}
+                    ${getPresenterSessionPill(p)}
+                  </div>
+                  <div class="col-reg cert-col-action">
+                    ${p.isNotPresented ? `
+                      <span class="cert-badge-ineligible">Ineligible</span>
+                      <span class="cert-ineligible-note">Paper Not Presented</span>
+                    ` : `
+                      <a href="${p.certificateLink}" 
+                         class="cert-download-btn" 
+                         target="_blank" 
+                         rel="noopener noreferrer" 
+                         download="AUTOCOM_26_Certificate_${p.id}.pdf">
+                        <span>📜</span>
+                        <span>Download</span>
+                      </a>
+                    `}
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+
+        <!-- ============================================== -->
+        <!-- SECTION 3: SESSION CHAIRS                      -->
+        <!-- ============================================== -->
+        <div id="cert-section-chairs" class="cert-section-block">
+          <div class="cert-section-header">
+            <div class="cert-section-title-wrap">
+              <h3 class="cert-section-heading">🎙️ Session Chair & Co-Chair Certificates</h3>
+              <p class="cert-section-sub">Session Chairs and Co-Chairs leading presentation tracks at IEEE AUTOCOM-26</p>
+            </div>
+            <span class="cert-section-counter-badge">${sessionChairs.length} Chairs & Co-Chairs</span>
+          </div>
+
+          <!-- Session Chairs Search & Role Tabs -->
+          <div class="paper-search-wrapper" style="margin-bottom: 1rem;">
+            <div class="paper-search-box">
+              <span class="search-icon">🔍</span>
+              <input 
+                type="text" 
+                id="cert-chair-search-input" 
+                class="paper-search-input" 
+                placeholder="Search chairs by name, affiliation, track, or hall..." 
+                oninput="window.filterCertChairs(this.value)"
+              />
+              <button class="clear-search-btn" onclick="document.getElementById('cert-chair-search-input').value=''; window.filterCertChairs('');">Clear</button>
+            </div>
+          </div>
+
+          <div class="schedule-tabs-container">
+            <div class="schedule-tabs">
+              <button class="schedule-tab-btn cert-chair-tab-btn active" data-role="all" onclick="window.switchChairRole('all')">
+                <span class="tab-icon">👥</span>
+                <span class="tab-text">All Chairs (${sessionChairs.length})</span>
+              </button>
+              ${chairRoles.map(role => {
+                const count = sessionChairs.filter(c => c.titleOrRole === role).length;
+                return `
+                <button class="schedule-tab-btn cert-chair-tab-btn" data-role="${role.toLowerCase()}" onclick="window.switchChairRole('${role.toLowerCase()}')">
+                  <span class="tab-icon">${role.toLowerCase().includes('co') ? '🤝' : '🎙️'}</span>
+                  <span class="tab-text">${role}s (${count})</span>
+                </button>
+              `;}).join('')}
+            </div>
+          </div>
+
+          <!-- No Chairs Results -->
+          <div id="no-cert-chair-results" class="no-paper-results" style="display: none;">
+            <div class="empty-state-card">
+              <span class="empty-icon">🔎</span>
+              <h3>No Matching Session Chairs Found</h3>
+              <p>Try searching with another chair name, affiliation, or track keyword.</p>
+              <button class="btn btn-sm btn-outline" onclick="document.getElementById('cert-chair-search-input').value=''; window.filterCertChairs('');">Reset Search</button>
+            </div>
+          </div>
+
+          <!-- Session Chairs Narrow Rows Table -->
+          <div class="papers-table-card cert-table-card">
+            <div class="papers-table-header cert-table-header">
+              <span class="col-cert-badge">Role</span>
+              <span class="col-cert-info">Chair Details & Chaired Sessions</span>
+              <span class="col-cert-action">Certificate</span>
+            </div>
+            <div class="papers-rows-list">
+              ${sessionChairs.map(c => `
+                <div class="paper-row-item cert-person-row cert-chair-row" 
+                     data-id="${(c.id || '').toLowerCase()}"
+                     data-name="${(c.name || '').toLowerCase()}" 
+                     data-aff="${(c.affiliation || '').toLowerCase()}" 
+                     data-role="${(c.titleOrRole || '').toLowerCase()}" 
+                     data-tracks="${(c.track + ' ' + c.hall + ' ' + c.time).toLowerCase()}">
+                  <div class="col-cert-badge">
+                    <span class="cert-role-badge ${c.titleOrRole === 'Session Chair' ? 'cert-role-chair' : 'cert-role-cochair'}">${c.titleOrRole}</span>
+                  </div>
+                  <div class="col-cert-info">
+                    <div class="cert-chair-name-sessions">
+                      <h5 class="cert-row-person-name">🎙️ ${c.name}</h5>
+                      ${getChairSessionsPills(c)}
+                    </div>
+                    ${c.affiliation ? `<div class="cert-row-aff-meta">🏛️ ${c.affiliation}</div>` : ''}
+                  </div>
+                  <div class="col-cert-action">
+                    <a href="${c.certificateLink}" 
+                       class="cert-download-btn cert-download-btn-sm" 
+                       target="_blank" 
+                       rel="noopener noreferrer" 
+                       download="AUTOCOM_26_Chair_${c.cleanId}.pdf">
+                      <span>📜</span>
+                      <span>Download Certificate</span>
+                    </a>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+
+        <!-- Certificates CTA Buttons -->
+        <div class="schedule-cta" style="margin-top: 3.5rem;">
+          <button class="btn btn-primary hero-btn-schedule" onclick="window.navigate('schedule')">📑 View Presentation Schedule</button>
+          <button class="btn btn-primary hero-btn-itinerary" onclick="window.navigate('itinerary')">🗓️ View Conference Itinerary</button>
+          <button class="btn btn-outline" onclick="window.navigate('home')">🏠 Home</button>
+        </div>
+      </div>
+    </section>
+  `;
+};

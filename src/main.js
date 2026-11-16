@@ -1,5 +1,5 @@
 import '/src/styles/style.css'; // Deployment Trigger: Absolute paths for root hosting
-import { renderAbout, renderRegistration, renderGuidelines, renderHero, renderSpeakers, renderTracks, renderCommittees, renderPartners, renderFooter, renderCFP, renderGallery, renderContact, renderDownloads, renderNearbyGallery, renderSchedule, renderItinerary } from './scripts/renderer.js';
+import { renderAbout, renderRegistration, renderGuidelines, renderHero, renderSpeakers, renderTracks, renderCommittees, renderPartners, renderFooter, renderCFP, renderGallery, renderContact, renderDownloads, renderNearbyGallery, renderSchedule, renderItinerary, renderCertificates } from './scripts/renderer.js';
 
 let siteConfig = null;
 let currentPath = 'home';
@@ -185,6 +185,10 @@ async function renderApp() {
         case 'schedule':
           const schedData = await fetchData('schedule', 'csv');
           pageHtml = renderSchedule(schedData);
+          break;
+        case 'certificates':
+          const certsData = await fetchData('certificates', 'csv');
+          pageHtml = renderCertificates(certsData, siteConfig);
           break;
         default:
           pageHtml = `
