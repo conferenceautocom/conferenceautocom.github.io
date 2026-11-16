@@ -1897,105 +1897,18 @@ export const renderCertificates = (rawInput, config) => {
     });
 
     const sRev = document.getElementById('cert-section-reviewers');
-    const sPres = document.getElementById('cert-section-presenters');
     const sChairs = document.getElementById('cert-section-chairs');
 
     if (catKey === 'all') {
       if (sRev) sRev.style.display = 'block';
-      if (sPres) sPres.style.display = 'block';
       if (sChairs) sChairs.style.display = 'block';
     } else {
       if (sRev) sRev.style.display = (catKey === 'reviewers') ? 'block' : 'none';
-      if (sPres) sPres.style.display = (catKey === 'presenters') ? 'block' : 'none';
       if (sChairs) sChairs.style.display = (catKey === 'chairs') ? 'block' : 'none';
     }
   };
 
-  // 2. Presenters Day/Session Tab Switcher
-  window.switchCertDay = (dayKey) => {
-    document.querySelectorAll('.cert-day-tab-btn').forEach(btn => {
-      btn.classList.toggle('active', btn.getAttribute('data-day') === String(dayKey));
-    });
-    const searchVal = (document.getElementById('cert-paper-search-input')?.value || '').toLowerCase().trim();
-    const rows = document.querySelectorAll('.cert-paper-row-item');
-    let visibleCount = 0;
-
-    rows.forEach(row => {
-      const g = (row.getAttribute('data-group') || '').toLowerCase();
-      const groupMatches = (dayKey === 'all' || g === dayKey.toLowerCase());
-
-      const pid = row.getAttribute('data-pid') || '';
-      const title = row.getAttribute('data-title') || '';
-      const author = row.getAttribute('data-author') || '';
-      const aff = row.getAttribute('data-aff') || '';
-      const track = row.getAttribute('data-track') || '';
-      const hall = row.getAttribute('data-hall') || '';
-      const presented = row.getAttribute('data-presented') || '';
-
-      const searchMatches = !searchVal || 
-        pid.includes(searchVal) || 
-        title.includes(searchVal) || 
-        author.includes(searchVal) || 
-        aff.includes(searchVal) || 
-        track.includes(searchVal) || 
-        hall.includes(searchVal) || 
-        g.includes(searchVal) ||
-        ((searchVal.includes('not presented') || searchVal.includes('absent')) && presented === 'no') ||
-        (searchVal === 'presented' && presented === 'yes');
-
-      const show = groupMatches && searchMatches;
-      row.style.display = show ? 'flex' : 'none';
-      if (show) visibleCount++;
-    });
-
-    const noResultsMsg = document.getElementById('no-cert-paper-results');
-    if (noResultsMsg) {
-      noResultsMsg.style.display = visibleCount === 0 ? 'block' : 'none';
-    }
-  };
-
-  // 3. Presenters Search Filter
-  window.filterCertPapers = (query) => {
-    const q = (query || '').toLowerCase().trim();
-    const activeTab = document.querySelector('.cert-day-tab-btn.active')?.getAttribute('data-day') || 'all';
-    const rows = document.querySelectorAll('.cert-paper-row-item');
-    let visibleCount = 0;
-
-    rows.forEach(row => {
-      const g = (row.getAttribute('data-group') || '').toLowerCase();
-      const groupMatches = (activeTab === 'all' || g === activeTab.toLowerCase());
-
-      const pid = row.getAttribute('data-pid') || '';
-      const title = row.getAttribute('data-title') || '';
-      const author = row.getAttribute('data-author') || '';
-      const aff = row.getAttribute('data-aff') || '';
-      const track = row.getAttribute('data-track') || '';
-      const hall = row.getAttribute('data-hall') || '';
-      const presented = row.getAttribute('data-presented') || '';
-
-      const searchMatches = !q || 
-        pid.includes(q) || 
-        title.includes(q) || 
-        author.includes(q) || 
-        aff.includes(q) || 
-        track.includes(q) || 
-        hall.includes(q) || 
-        g.includes(q) ||
-        ((q.includes('not presented') || q.includes('absent')) && presented === 'no') ||
-        (q === 'presented' && presented === 'yes');
-
-      const show = groupMatches && searchMatches;
-      row.style.display = show ? 'flex' : 'none';
-      if (show) visibleCount++;
-    });
-
-    const noResultsMsg = document.getElementById('no-cert-paper-results');
-    if (noResultsMsg) {
-      noResultsMsg.style.display = visibleCount === 0 ? 'block' : 'none';
-    }
-  };
-
-  // 4. Session Chairs Role Switcher
+  // 2. Session Chairs Role Switcher
   window.switchChairRole = (roleKey) => {
     document.querySelectorAll('.cert-chair-tab-btn').forEach(btn => {
       btn.classList.toggle('active', btn.getAttribute('data-role') === String(roleKey));
@@ -2073,7 +1986,7 @@ export const renderCertificates = (rawInput, config) => {
       // Empty search - keep reviewers hidden and show search prompt
       rows.forEach(row => row.style.display = 'none');
       if (tableCard) tableCard.style.display = 'none';
-      if (promptCard) promptCard.style.display = 'block';
+      if (promptCard) promptCard.style.display = 'flex';
       if (noResultsMsg) noResultsMsg.style.display = 'none';
       if (countBadge) countBadge.style.display = 'none';
       return;
@@ -2111,12 +2024,7 @@ export const renderCertificates = (rawInput, config) => {
     }
   };
 
-  const totalPapers = presenters.length;
-  const presentedPapers = presenters.filter(p => !p.isNotPresented).length;
-  const totalAllEligible = reviewers.length + presentedPapers + sessionChairs.length;
-
   const revGroups = [...new Set(reviewers.map(r => r.group).filter(Boolean))];
-  const presGroups = [...new Set(presenters.map(p => p.group).filter(Boolean))];
   const chairRoles = [...new Set(sessionChairs.map(c => c.titleOrRole).filter(Boolean))];
 
   const getChairSessionsPills = (c) => {
@@ -2139,16 +2047,6 @@ export const renderCertificates = (rawInput, config) => {
       }
     }
     return pills.length > 0 ? `<div class="cert-sessions-inline-wrap">${pills.join('')}</div>` : '';
-  };
-
-  const getPresenterSessionPill = (p) => {
-    const parts = [];
-    if (p.track) parts.push(p.track.startsWith('Track') ? p.track : `Track ${p.track}`);
-    if (p.hall) parts.push(`(${p.hall})`);
-    if (p.time) parts.push(`• ${p.time}`);
-    if (p.group) parts.push(`• ${p.group}`);
-    if (parts.length === 0) return '';
-    return `<div class="cert-sessions-inline-wrap" style="margin-top: 0.35rem;"><span class="cert-session-pill">📍 ${parts.join(' ')}</span></div>`;
   };
 
   return `
@@ -2180,7 +2078,7 @@ export const renderCertificates = (rawInput, config) => {
           </div>
         </div>
 
-        <!-- Section Navigation Pills (Reviewers, Presenters, Session Chairs) -->
+        <!-- Section Navigation Pills (Reviewers, Session Chairs) -->
         <div class="cert-category-nav">
           <button class="cert-category-btn active" data-cat="all" onclick="window.switchCertCategory('all')">
             <span>🌟</span>
@@ -2189,11 +2087,6 @@ export const renderCertificates = (rawInput, config) => {
           <button class="cert-category-btn" data-cat="reviewers" onclick="window.switchCertCategory('reviewers')">
             <span>📝</span>
             <span>Reviewers</span>
-          </button>
-          <button class="cert-category-btn" data-cat="presenters" onclick="window.switchCertCategory('presenters')">
-            <span>🎤</span>
-            <span>Presenters</span>
-            <span class="cert-category-count">${presentedPapers}</span>
           </button>
           <button class="cert-category-btn" data-cat="chairs" onclick="window.switchCertCategory('chairs')">
             <span>🎙️</span>
@@ -2221,7 +2114,7 @@ export const renderCertificates = (rawInput, config) => {
                 type="text" 
                 id="cert-rev-search-input" 
                 class="paper-search-input" 
-                placeholder="Type your name, affiliation, or reviewer ID to search..." 
+                placeholder="Search by Name, Affiliation, or Reviewer ID (e.g. Srinjoy, IIT, REV-001)..." 
                 oninput="window.filterCertReviewers(this.value)"
                 autocomplete="off"
               />
@@ -2250,15 +2143,10 @@ export const renderCertificates = (rawInput, config) => {
             </div>
           ` : ''}
 
-          <!-- Initial Search Prompt State (Displayed when search is empty) -->
-          <div id="cert-rev-search-prompt" class="cert-search-prompt-card">
-            <div class="cert-search-prompt-box">
-              <span class="cert-prompt-icon">🔍</span>
-              <h4 class="cert-prompt-title">Search to Find Your Reviewer Certificate</h4>
-              <p class="cert-prompt-text">
-                Please enter your <strong>Name</strong>, <strong>Affiliation</strong>, or <strong>Reviewer ID</strong> in the search box above to display and download your certificate.
-              </p>
-            </div>
+          <!-- Concise Search Prompt Hint (Displayed when search is empty) -->
+          <div id="cert-rev-search-prompt" class="cert-search-hint-compact">
+            <span class="cert-hint-icon">💡</span>
+            <span class="cert-hint-text">Type your <strong>Name</strong>, <strong>Affiliation</strong>, or <strong>Reviewer ID</strong> above to find and download your certificate.</span>
           </div>
 
           <!-- No Reviewer Results -->
@@ -2311,118 +2199,7 @@ export const renderCertificates = (rawInput, config) => {
         </div>
 
         <!-- ============================================== -->
-        <!-- SECTION 2: PRESENTERS                          -->
-        <!-- ============================================== -->
-        <div id="cert-section-presenters" class="cert-section-block">
-          <div class="cert-section-header">
-            <div class="cert-section-title-wrap">
-              <h3 class="cert-section-heading">🎤 Presenter Certificates</h3>
-              <p class="cert-section-sub">Authors of presented papers at IEEE AUTOCOM-26</p>
-            </div>
-            <span class="cert-section-counter-badge">${presentedPapers} Presented / ${totalPapers} Total Papers</span>
-          </div>
-
-          <!-- Presenter Search and Quick Filter Bar -->
-          <div class="paper-search-wrapper" style="margin-bottom: 1rem;">
-            <div class="paper-search-box">
-              <span class="search-icon">🔍</span>
-              <input 
-                type="text" 
-                id="cert-paper-search-input" 
-                class="paper-search-input" 
-                placeholder="Search by Paper ID, Title, Author, Track, Hall, or Affiliation..." 
-                oninput="window.filterCertPapers(this.value)"
-              />
-              <button class="clear-search-btn" onclick="document.getElementById('cert-paper-search-input').value=''; window.filterCertPapers('');">Clear</button>
-            </div>
-          </div>
-
-          <!-- Day Filter Tabs for Papers -->
-          <div class="schedule-tabs-container">
-            <div class="schedule-tabs">
-              <button class="schedule-tab-btn cert-day-tab-btn active" data-day="all" onclick="window.switchCertDay('all')">
-                <span class="tab-icon">📚</span>
-                <span class="tab-text">All Sessions (${totalPapers})</span>
-              </button>
-              ${presGroups.map(g => {
-                const count = presenters.filter(p => p.group === g).length;
-                return `
-                <button class="schedule-tab-btn cert-day-tab-btn" data-day="${g.toLowerCase()}" onclick="window.switchCertDay('${g.toLowerCase()}')">
-                  <span class="tab-icon">🗓️</span>
-                  <span class="tab-text">${g} (${count})</span>
-                </button>
-              `;}).join('')}
-            </div>
-          </div>
-
-          <!-- No Paper Results Fallback -->
-          <div id="no-cert-paper-results" class="no-paper-results" style="display: none;">
-            <div class="empty-state-card">
-              <span class="empty-icon">🔎</span>
-              <h3>No Matching Presenter Certificates Found</h3>
-              <p>Try searching with another Paper ID or author name keyword.</p>
-              <button class="btn btn-sm btn-outline" onclick="document.getElementById('cert-paper-search-input').value=''; window.filterCertPapers('');">Reset Search</button>
-            </div>
-          </div>
-
-          <!-- Presenters Narrow Rows Table -->
-          <div class="papers-table-card cert-table-card">
-            <div class="papers-table-header cert-table-header">
-              <span class="col-pid">Paper ID</span>
-              <span class="col-title">Paper Title & Presenter Details</span>
-              <span class="col-reg">Certificate</span>
-            </div>
-            <div class="papers-rows-list">
-              ${presenters.map(p => `
-                <div class="paper-row-item cert-paper-row-item ${p.isNotPresented ? 'paper-not-presented' : ''}" 
-                     data-pid="${(p.id || '').toLowerCase()}" 
-                     data-title="${(p.titleOrRole || '').toLowerCase()}" 
-                     data-author="${(p.name || '').toLowerCase()}" 
-                     data-aff="${(p.affiliation || '').toLowerCase()}" 
-                     data-track="${(p.track || '').toLowerCase()}"
-                     data-hall="${(p.hall || '').toLowerCase()}"
-                     data-group="${(p.group || '').toLowerCase()}"
-                     data-presented="${p.isNotPresented ? 'no' : 'yes'}">
-                  <div class="col-pid">
-                    <span class="paper-id-badge ${p.isNotPresented ? 'badge-pid-not-presented' : 'badge-pid-cert'}">#${p.id}</span>
-                  </div>
-                  <div class="col-title">
-                    <div class="paper-title-wrapper">
-                      <h5 class="paper-name ${p.isNotPresented ? 'paper-name-not-presented' : ''}">${p.titleOrRole}</h5>
-                      ${p.isNotPresented ? `<span class="inline-label-not-presented">Not Presented</span>` : ''}
-                    </div>
-                    ${(p.name || p.affiliation) ? `
-                      <div class="paper-author-meta">
-                        ${p.name ? `<span class="paper-author-name">👤 ${p.name}</span>` : ''}
-                        ${(p.name && p.affiliation) ? `<span class="author-sep">•</span>` : ''}
-                        ${p.affiliation ? `<span class="paper-author-affiliation">🏛️ ${p.affiliation}</span>` : ''}
-                      </div>
-                    ` : ''}
-                    ${getPresenterSessionPill(p)}
-                  </div>
-                  <div class="col-reg cert-col-action">
-                    ${p.isNotPresented ? `
-                      <span class="cert-badge-ineligible">Ineligible</span>
-                      <span class="cert-ineligible-note">Paper Not Presented</span>
-                    ` : `
-                      <a href="${p.certificateLink}" 
-                         class="cert-download-btn" 
-                         target="_blank" 
-                         rel="noopener noreferrer" 
-                         download="AUTOCOM_26_Certificate_${p.id}.pdf">
-                        <span>📜</span>
-                        <span>Download</span>
-                      </a>
-                    `}
-                  </div>
-                </div>
-              `).join('')}
-            </div>
-          </div>
-        </div>
-
-        <!-- ============================================== -->
-        <!-- SECTION 3: SESSION CHAIRS                      -->
+        <!-- SECTION 2: SESSION CHAIRS                      -->
         <!-- ============================================== -->
         <div id="cert-section-chairs" class="cert-section-block">
           <div class="cert-section-header">
